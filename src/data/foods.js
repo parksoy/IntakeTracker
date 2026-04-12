@@ -1,0 +1,116 @@
+// Weight Watchers-style food data (2025 program)
+// Zero-point foods can be eaten in unlimited quantities
+// Tracked foods count against the 23-point daily budget
+
+export const ZERO_POINT_FOODS = [
+  // Proteins
+  { id: 'z1', name: 'Eggs (any style)', category: 'Protein' },
+  { id: 'z2', name: 'Chicken breast, skinless', category: 'Protein' },
+  { id: 'z3', name: 'Chicken thigh, skinless', category: 'Protein' },
+  { id: 'z4', name: 'Turkey breast, skinless', category: 'Protein' },
+  { id: 'z5', name: 'Ground beef, 90%+ lean', category: 'Protein' },
+  { id: 'z6', name: 'Salmon', category: 'Protein' },
+  { id: 'z7', name: 'Tuna (fresh or canned in water)', category: 'Protein' },
+  { id: 'z8', name: 'Tilapia', category: 'Protein' },
+  { id: 'z9', name: 'Cod', category: 'Protein' },
+  { id: 'z10', name: 'Shrimp', category: 'Protein' },
+  { id: 'z11', name: 'Crab', category: 'Protein' },
+  { id: 'z12', name: 'Lobster', category: 'Protein' },
+  { id: 'z13', name: 'Scallops', category: 'Protein' },
+  { id: 'z14', name: 'Tofu', category: 'Protein' },
+  { id: 'z15', name: 'Tempeh (plain)', category: 'Protein' },
+  // Legumes
+  { id: 'z16', name: 'Black beans', category: 'Legumes' },
+  { id: 'z17', name: 'Chickpeas', category: 'Legumes' },
+  { id: 'z18', name: 'Lentils', category: 'Legumes' },
+  { id: 'z19', name: 'Kidney beans', category: 'Legumes' },
+  { id: 'z20', name: 'Green peas', category: 'Legumes' },
+  { id: 'z21', name: 'Edamame', category: 'Legumes' },
+  // Fruits
+  { id: 'z22', name: 'Apple', category: 'Fruit' },
+  { id: 'z23', name: 'Banana', category: 'Fruit' },
+  { id: 'z24', name: 'Orange', category: 'Fruit' },
+  { id: 'z25', name: 'Strawberries', category: 'Fruit' },
+  { id: 'z26', name: 'Blueberries', category: 'Fruit' },
+  { id: 'z27', name: 'Raspberries', category: 'Fruit' },
+  { id: 'z28', name: 'Grapes', category: 'Fruit' },
+  { id: 'z29', name: 'Mango', category: 'Fruit' },
+  { id: 'z30', name: 'Pineapple', category: 'Fruit' },
+  { id: 'z31', name: 'Watermelon', category: 'Fruit' },
+  { id: 'z32', name: 'Peach', category: 'Fruit' },
+  { id: 'z33', name: 'Pear', category: 'Fruit' },
+  { id: 'z34', name: 'Melon', category: 'Fruit' },
+  // Vegetables
+  { id: 'z35', name: 'Broccoli', category: 'Vegetable' },
+  { id: 'z36', name: 'Spinach', category: 'Vegetable' },
+  { id: 'z37', name: 'Lettuce / Salad greens', category: 'Vegetable' },
+  { id: 'z38', name: 'Tomato', category: 'Vegetable' },
+  { id: 'z39', name: 'Cucumber', category: 'Vegetable' },
+  { id: 'z40', name: 'Carrots', category: 'Vegetable' },
+  { id: 'z41', name: 'Bell peppers', category: 'Vegetable' },
+  { id: 'z42', name: 'Mushrooms', category: 'Vegetable' },
+  { id: 'z43', name: 'Zucchini', category: 'Vegetable' },
+  { id: 'z44', name: 'Asparagus', category: 'Vegetable' },
+  { id: 'z45', name: 'Green beans', category: 'Vegetable' },
+  { id: 'z46', name: 'Onion', category: 'Vegetable' },
+  { id: 'z47', name: 'Cauliflower', category: 'Vegetable' },
+  { id: 'z48', name: 'Celery', category: 'Vegetable' },
+  { id: 'z49', name: 'Kale', category: 'Vegetable' },
+  { id: 'z50', name: 'Cabbage', category: 'Vegetable' },
+  // Starchy veg & grains
+  { id: 'z51', name: 'Potato (plain)', category: 'Starchy' },
+  { id: 'z52', name: 'Sweet potato', category: 'Starchy' },
+  { id: 'z53', name: 'Corn', category: 'Starchy' },
+  { id: 'z54', name: 'Oatmeal (plain)', category: 'Starchy' },
+  { id: 'z55', name: 'Brown rice', category: 'Starchy' },
+  { id: 'z56', name: 'Whole wheat pasta', category: 'Starchy' },
+  { id: 'z57', name: 'Air-popped popcorn', category: 'Starchy' },
+  // Dairy
+  { id: 'z58', name: 'Fat-free plain yogurt', category: 'Dairy' },
+  { id: 'z59', name: 'Fat-free cottage cheese', category: 'Dairy' },
+];
+
+export const TRACKED_FOODS = [
+  // Bread & Grains
+  { id: 't1', name: 'White bread (1 slice)', points: 2, category: 'Bread & Grains' },
+  { id: 't2', name: 'Bagel (1 whole)', points: 6, category: 'Bread & Grains' },
+  { id: 't3', name: 'White rice (1 cup cooked)', points: 6, category: 'Bread & Grains' },
+  { id: 't4', name: 'White pasta (1 cup cooked)', points: 4, category: 'Bread & Grains' },
+  { id: 't5', name: 'Flour tortilla (8")', points: 4, category: 'Bread & Grains' },
+  { id: 't6', name: 'Crackers (10 small)', points: 4, category: 'Bread & Grains' },
+  // Fats & Oils
+  { id: 't7', name: 'Butter (1 tbsp)', points: 5, category: 'Fats & Oils' },
+  { id: 't8', name: 'Olive oil (1 tbsp)', points: 4, category: 'Fats & Oils' },
+  { id: 't9', name: 'Peanut butter (2 tbsp)', points: 5, category: 'Fats & Oils' },
+  { id: 't10', name: 'Avocado (½)', points: 5, category: 'Fats & Oils' },
+  // Dairy
+  { id: 't11', name: 'Cheddar cheese (1 oz)', points: 3, category: 'Dairy' },
+  { id: 't12', name: 'Whole milk (1 cup)', points: 5, category: 'Dairy' },
+  { id: 't13', name: '2% milk (1 cup)', points: 4, category: 'Dairy' },
+  { id: 't14', name: 'Cream cheese (2 tbsp)', points: 3, category: 'Dairy' },
+  // Snacks & Sweets
+  { id: 't15', name: 'Potato chips (1 oz)', points: 4, category: 'Snacks & Sweets' },
+  { id: 't16', name: 'Cookie (1 medium)', points: 4, category: 'Snacks & Sweets' },
+  { id: 't17', name: 'Chocolate (1 oz)', points: 5, category: 'Snacks & Sweets' },
+  { id: 't18', name: 'Ice cream (½ cup)', points: 6, category: 'Snacks & Sweets' },
+  { id: 't19', name: 'Granola bar', points: 4, category: 'Snacks & Sweets' },
+  { id: 't20', name: 'Donut (glazed)', points: 8, category: 'Snacks & Sweets' },
+  { id: 't21', name: 'Blueberry muffin', points: 8, category: 'Snacks & Sweets' },
+  // Drinks
+  { id: 't22', name: 'Orange juice (1 cup)', points: 5, category: 'Drinks' },
+  { id: 't23', name: 'Soda (12 oz can)', points: 5, category: 'Drinks' },
+  { id: 't24', name: 'Wine (5 oz glass)', points: 4, category: 'Drinks' },
+  { id: 't25', name: 'Beer (12 oz)', points: 5, category: 'Drinks' },
+  // Meat & Proteins (with points)
+  { id: 't26', name: 'Bacon (2 slices)', points: 4, category: 'Meat' },
+  { id: 't27', name: 'Pork sausage (2 links)', points: 5, category: 'Meat' },
+  { id: 't28', name: 'Hot dog', points: 6, category: 'Meat' },
+  // Fast Food
+  { id: 't29', name: "McDonald's Hamburger", points: 8, category: 'Fast Food' },
+  { id: 't30', name: "McDonald's Cheeseburger", points: 9, category: 'Fast Food' },
+  { id: 't31', name: "McDonald's Fries (small)", points: 7, category: 'Fast Food' },
+  { id: 't32', name: "McDonald's Fries (large)", points: 11, category: 'Fast Food' },
+  { id: 't33', name: 'Pizza slice (cheese)', points: 8, category: 'Fast Food' },
+  { id: 't34', name: 'Whopper', points: 24, category: 'Fast Food' },
+  { id: 't35', name: 'Taco Bell Mexican Pizza', points: 15, category: 'Fast Food' },
+];
