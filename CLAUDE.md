@@ -91,6 +91,25 @@ Two Claude Code agents run in parallel in iTerm2 (2-pane split). Each owns a sep
 
 **Merge strategy:** Each agent works on a separate git branch; merge sequentially when done.
 
+## Agent Rules
+
+### After editing any JS file
+Run a syntax check before considering the task done:
+```bash
+node --check <edited-file-path>
+```
+If the check fails, fix the syntax error before stopping. Do not leave a broken file.
+
+### When adding or changing foods
+Food data lives in `src/data/foods.js` only. Do not hardcode food names or point values anywhere else. Zero-point foods go in `ZERO_POINT_FOODS[]`, all others in `TRACKED_FOODS[]` with a `points` field.
+
+### Storage contract
+- Keys: `intake_log_YYYY-MM-DD` for daily logs, `intake_recently_used` for the recent list.
+- Never change these key names without also updating `loadAllLogs()` and `loadTodayLog()` — both rely on the `intake_log_` prefix.
+
+### No UI testing without the device
+React Native UI changes cannot be verified by running Node scripts. If you cannot test on device via Expo Go or a TestFlight build, say so explicitly rather than claiming the UI is correct.
+
 ## What's Not Built (Backlog)
 
 - [x] ~~Fix/verify Expo Go QR scan error~~ — moot once EAS build is live

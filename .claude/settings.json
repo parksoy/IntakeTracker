@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [[ \"$file\" == *.js ]]; then node --check \"$file\" && echo \"✓ syntax ok: $file\" || echo \"✗ syntax error in $file — fix before continuing\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
