@@ -25,7 +25,7 @@ export default function App() {
 
   // Load today's log on mount (also handles day-reset automatically)
   useEffect(() => {
-    loadTodayLog().then(entries => {
+    loadTodayLog().then((entries) => {
       setLog(entries);
       setLoading(false);
     });
@@ -34,7 +34,7 @@ export default function App() {
   const totalPoints = log.reduce((sum, entry) => sum + entry.points, 0);
 
   const handleAddFood = useCallback(async (entry) => {
-    setLog(prev => {
+    setLog((prev) => {
       const updated = [entry, ...prev];
       saveTodayLog(updated);
       return updated;
@@ -42,29 +42,25 @@ export default function App() {
   }, []);
 
   const handleDelete = useCallback(async (id) => {
-    setLog(prev => {
-      const updated = prev.filter(e => e.id !== id);
+    setLog((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
       saveTodayLog(updated);
       return updated;
     });
   }, []);
 
   const handleClearDay = useCallback(() => {
-    Alert.alert(
-      'Clear Today',
-      'Remove all food entries for today?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => {
-            setLog([]);
-            clearTodayLog();
-          },
+    Alert.alert('Clear Today', 'Remove all food entries for today?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: () => {
+          setLog([]);
+          clearTodayLog();
         },
-      ]
-    );
+      },
+    ]);
   }, []);
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -98,10 +94,8 @@ export default function App() {
 
       <FlatList
         data={log}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <FoodLogItem item={item} onDelete={handleDelete} />
-        )}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <FoodLogItem item={item} onDelete={handleDelete} />}
         ListHeaderComponent={
           <View>
             {/* Points Ring */}
@@ -153,10 +147,7 @@ export default function App() {
         }}
       />
 
-      <HistoryScreen
-        visible={historyVisible}
-        onClose={() => setHistoryVisible(false)}
-      />
+      <HistoryScreen visible={historyVisible} onClose={() => setHistoryVisible(false)} />
     </SafeAreaView>
   );
 }

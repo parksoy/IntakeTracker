@@ -51,7 +51,9 @@ export default function HistoryScreen({ visible, onClose }) {
         <View style={styles.dayHeader}>
           <View style={styles.dayLeft}>
             <Text style={styles.dayDate}>{formatDate(item.date)}</Text>
-            <Text style={styles.dayCount}>{count} item{count !== 1 ? 's' : ''}</Text>
+            <Text style={styles.dayCount}>
+              {count} item{count !== 1 ? 's' : ''}
+            </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={[styles.totalBadge, { backgroundColor: badge.bg }]}>
@@ -67,9 +69,12 @@ export default function HistoryScreen({ visible, onClose }) {
           <View style={styles.entryList}>
             {item.entries.map((e) => (
               <View key={e.id} style={styles.entryRow}>
-                <Text style={styles.entryName} numberOfLines={1}>{e.name}</Text>
+                <Text style={styles.entryName} numberOfLines={1}>
+                  {e.name}
+                </Text>
                 <Text style={styles.entryMeta}>
-                  {e.time}{'  '}
+                  {e.time}
+                  {'  '}
                   <Text style={e.points === 0 ? styles.entryFree : styles.entryPts}>
                     {e.points === 0 ? 'FREE' : `${e.points} pts`}
                   </Text>

@@ -58,7 +58,7 @@ export async function loadAllLogs() {
     const allKeys = await AsyncStorage.getAllKeys();
     const today = getTodayString();
     const pastKeys = allKeys
-      .filter(k => k.startsWith(LOG_PREFIX) && k !== LOG_PREFIX + today)
+      .filter((k) => k.startsWith(LOG_PREFIX) && k !== LOG_PREFIX + today)
       .sort()
       .reverse();
 
@@ -70,7 +70,7 @@ export async function loadAllLogs() {
         date: key.replace(LOG_PREFIX, ''),
         entries: JSON.parse(value) || [],
       }))
-      .filter(d => d.entries.length > 0);
+      .filter((d) => d.entries.length > 0);
   } catch {
     return [];
   }
@@ -91,10 +91,10 @@ export async function loadRecentlyUsed() {
 export async function saveRecentlyUsed(foodItem) {
   try {
     const current = await loadRecentlyUsed();
-    const updated = [
-      foodItem,
-      ...current.filter(f => f.name !== foodItem.name),
-    ].slice(0, RECENTLY_USED_MAX);
+    const updated = [foodItem, ...current.filter((f) => f.name !== foodItem.name)].slice(
+      0,
+      RECENTLY_USED_MAX
+    );
     await AsyncStorage.setItem(RECENTLY_USED_KEY, JSON.stringify(updated));
   } catch {
     // silently fail

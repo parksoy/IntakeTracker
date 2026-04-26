@@ -31,12 +31,12 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   const filteredZero = useMemo(() => {
     const q = search.toLowerCase();
-    return ZERO_POINT_FOODS.filter(f => f.name.toLowerCase().includes(q));
+    return ZERO_POINT_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
 
   const filteredTracked = useMemo(() => {
     const q = search.toLowerCase();
-    return TRACKED_FOODS.filter(f => f.name.toLowerCase().includes(q));
+    return TRACKED_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
 
   function addEntry(baseName, basePoints) {
@@ -46,10 +46,12 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     const points = basePoints * servings;
     const item = { name, points };
     saveRecentlyUsed({ name: baseName, points: basePoints });
-    setRecentlyUsed(prev => [
-      { name: baseName, points: basePoints },
-      ...prev.filter(f => f.name !== baseName),
-    ].slice(0, 5));
+    setRecentlyUsed((prev) =>
+      [{ name: baseName, points: basePoints }, ...prev.filter((f) => f.name !== baseName)].slice(
+        0,
+        5
+      )
+    );
     onAdd({ id: Date.now().toString(), ...item, time });
   }
 
@@ -74,7 +76,11 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   function renderZeroItem({ item }) {
     return (
-      <TouchableOpacity style={styles.listRow} onPress={() => handleAddPreset(item)} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.listRow}
+        onPress={() => handleAddPreset(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.listInfo}>
           <Text style={styles.listName}>{item.name}</Text>
           <Text style={styles.listCategory}>{item.category}</Text>
@@ -88,7 +94,11 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   function renderTrackedItem({ item }) {
     return (
-      <TouchableOpacity style={styles.listRow} onPress={() => handleAddPreset(item)} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.listRow}
+        onPress={() => handleAddPreset(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.listInfo}>
           <Text style={styles.listName}>{item.name}</Text>
           <Text style={styles.listCategory}>{item.category}</Text>
@@ -100,37 +110,50 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     );
   }
 
-  const recentSection = recentlyUsed.length > 0 ? (
-    <View style={styles.recentSection}>
-      <Text style={styles.recentLabel}>Recently Used</Text>
-      {recentlyUsed.map((food) => {
-        const isZero = food.points === 0;
-        return (
-          <TouchableOpacity
-            key={food.name}
-            style={styles.listRow}
-            onPress={() => handleAddPreset(food)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.listInfo}>
-              <Text style={styles.listName}>{food.name}</Text>
-              <Text style={styles.listCategory}>Recently used</Text>
-            </View>
-            {isZero ? (
-              <View style={styles.zeroBadge}><Text style={styles.zeroText}>FREE</Text></View>
-            ) : (
-              <View style={styles.pointsBadge}><Text style={styles.pointsText}>{food.points} pts</Text></View>
-            )}
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  ) : null;
+  const recentSection =
+    recentlyUsed.length > 0 ? (
+      <View style={styles.recentSection}>
+        <Text style={styles.recentLabel}>Recently Used</Text>
+        {recentlyUsed.map((food) => {
+          const isZero = food.points === 0;
+          return (
+            <TouchableOpacity
+              key={food.name}
+              style={styles.listRow}
+              onPress={() => handleAddPreset(food)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.listInfo}>
+                <Text style={styles.listName}>{food.name}</Text>
+                <Text style={styles.listCategory}>Recently used</Text>
+              </View>
+              {isZero ? (
+                <View style={styles.zeroBadge}>
+                  <Text style={styles.zeroText}>FREE</Text>
+                </View>
+              ) : (
+                <View style={styles.pointsBadge}>
+                  <Text style={styles.pointsText}>{food.points} pts</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    ) : null;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Add Food</Text>
@@ -156,7 +179,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
           <View style={styles.servingsRow}>
             <Text style={styles.servingsLabel}>Servings</Text>
             <View style={styles.stepper}>
-              {[1, 2, 3].map(n => (
+              {[1, 2, 3].map((n) => (
                 <TouchableOpacity
                   key={n}
                   style={[styles.stepperBtn, servings === n && styles.stepperBtnActive]}
@@ -195,7 +218,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
           {activeTab === 'zero' ? (
             <FlatList
               data={filteredZero}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               renderItem={renderZeroItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
@@ -205,7 +228,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
           ) : (
             <FlatList
               data={filteredTracked}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               renderItem={renderTrackedItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
