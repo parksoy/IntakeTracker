@@ -20,6 +20,7 @@
 | `/lint-check` | Full pipeline: node --check → lint:fix → format → final lint pass |
 | ESLint | `eslint.config.js` with expo preset, zero errors on codebase |
 | Prettier | `.prettierrc`, `npm run format` applied to all JS files |
+| `SKILLS.md` | 7 composable agent capabilities with strict file scope — callable by orchestrator agents |
 
 ---
 
@@ -36,17 +37,36 @@
 
 In a single-Claude-Code project, they overlap. The distinction matters when multiple agent tools (Cursor, Codex, Claude) all work the same repo.
 
-### Built-in Skills vs Custom Commands
+### Built-in Skills vs Custom Commands vs SKILLS.md
 
-| | Built-in Skills | `.claude/commands/*.md` |
-|--|----------------|------------------------|
-| **Who defines them** | Anthropic / Claude Code system | You |
-| **How to invoke** | Claude calls them internally, or you type `/name` for system ones | You type `/name` in the prompt |
-| **Examples** | `/review`, `/init`, `simplify`, `update-config` | `/ship`, `/deslop`, `/lint-check` |
-| **What they are** | Pre-built Claude Code capabilities with real logic behind them | Markdown prompt templates — instructions Claude follows when invoked |
-| **Analogy** | Built-in iPhone apps | Shortcuts you recorded yourself |
+| | Built-in Skills | `.claude/commands/*.md` | `SKILLS.md` |
+|--|----------------|------------------------|-------------|
+| **Who defines them** | Anthropic / Claude Code system | You | You |
+| **Who invokes them** | Claude automatically, mid-task | You, explicitly with `/name` | An orchestrator agent dispatching to sub-agents |
+| **Examples** | `/review`, `/init`, `simplify` | `/ship`, `/deslop`, `/lint-check` | `add-food-item`, `create-modal-screen` |
+| **What they are** | Pre-built capabilities with real code behind them | Markdown prompt templates you trigger manually | Composable capability specs an agent calls programmatically |
+| **Analogy** | Built-in iPhone apps | Terminal scripts you run yourself | API endpoints another service can call |
 
-When you type `/ship` → Claude reads `.claude/commands/ship.md` and follows those instructions as a prompt. When Claude internally calls a built-in skill like `simplify` → it runs an Anthropic-defined capability with actual code behind it.
+**The key distinction:**
+- **Command** = "I want Claude to do X right now" → you type `/ship`
+- **Skill (built-in)** = Claude decides mid-task it needs a capability and calls it internally
+- **SKILLS.md entry** = an orchestrator agent says "dispatch `add-food-item` to a sub-agent" — composable, callable by other agents, not just humans
+
+**SKILLS.md in this project** (`/SKILLS.md` at repo root) defines 7 callable capabilities:
+
+| Skill | Input | File scope |
+|-------|-------|-----------|
+| `add-food-item` | name, category, points | `src/data/foods.js` only |
+| `add-storage-key` | keyName, description | `src/utils/storage.js` only |
+| `create-modal-screen` | name, purpose | creates `src/components/<Name>Screen.js` |
+| `wire-screen-into-app` | screenName, buttonLabel, placement | `App.js` only |
+| `create-github-issue` | title, body, labels | GitHub only, no local files |
+| `run-lint-pipeline` | files[] | listed `.js` files |
+| `write-design-doc` | featureName, issueNumber | creates `docs/design/<feature>.md` |
+
+Each skill has strict file scope so parallel sub-agents don't conflict with each other.
+
+When you type `/ship` → Claude reads `.claude/commands/ship.md` and follows those instructions as a prompt. When Claude internally calls a built-in skill like `simplify` → it runs an Anthropic-defined capability. When an orchestrator agent says "use the `add-food-item` skill" → it reads `SKILLS.md` and dispatches a focused sub-agent with that exact scope.
 
 ### How to spawn named agents
 
