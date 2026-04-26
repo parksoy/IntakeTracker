@@ -23,6 +23,56 @@
 
 ---
 
+## Key Concepts: What Each File Type Does
+
+### CLAUDE.md vs AGENTS.md
+
+| | `CLAUDE.md` | `AGENTS.md` |
+|--|-------------|-------------|
+| **Who reads it** | Claude Code only | Any AI agent (Claude, Codex, Gemini, etc.) |
+| **Purpose** | Project context + Claude-specific rules | Universal agent behavior contract |
+| **What goes in it** | Stack, file structure, design decisions, build commands, Claude-specific rules | How to run tests, lint rules, code review protocol, PR behavior — things that apply regardless of which agent is working |
+| **Analogy** | Onboarding doc written for Claude | Employee handbook for any contractor |
+
+In a single-Claude-Code project, they overlap. The distinction matters when multiple agent tools (Cursor, Codex, Claude) all work the same repo.
+
+### Built-in Skills vs Custom Commands
+
+| | Built-in Skills | `.claude/commands/*.md` |
+|--|----------------|------------------------|
+| **Who defines them** | Anthropic / Claude Code system | You |
+| **How to invoke** | Claude calls them internally, or you type `/name` for system ones | You type `/name` in the prompt |
+| **Examples** | `/review`, `/init`, `simplify`, `update-config` | `/ship`, `/deslop`, `/lint-check` |
+| **What they are** | Pre-built Claude Code capabilities with real logic behind them | Markdown prompt templates — instructions Claude follows when invoked |
+| **Analogy** | Built-in iPhone apps | Shortcuts you recorded yourself |
+
+When you type `/ship` → Claude reads `.claude/commands/ship.md` and follows those instructions as a prompt. When Claude internally calls a built-in skill like `simplify` → it runs an Anthropic-defined capability with actual code behind it.
+
+### How to spawn named agents
+
+Three real options, from simplest to most powerful:
+
+**Option 1 — Named roles in the prompt** (what `launch_agents.py` does)
+Give each agent a specific identity and scope in its opening prompt:
+```
+"You are BuildBot. Your only job is EAS Build config. Only touch app.json and eas.json."
+"You are FeatureBot. Your only job is the history screen. Only touch src/ and App.js."
+```
+Launch via iTerm2 split panes using `launch_agents.py`.
+
+**Option 2 — Claude Code subagents via the Agent tool**
+Ask Claude Code to spawn named parallel subagents directly in a session:
+```
+Agent(description="BuildBot", prompt="Configure EAS Build...")
+Agent(description="FeatureBot", prompt="Build HistoryScreen...")
+```
+These run in parallel and report back. Claude Code orchestrates them.
+
+**Option 3 — Claude Code on the web (`code.claude.com`)**
+Launch named cloud agents on a GitHub repo — they run asynchronously, have real names, and show up as separate sessions. This is the Module 4 async workflow option.
+
+---
+
 ## Exercise: Integrate a configuration file, custom rules, commands, and hooks
 
 ### What was done
