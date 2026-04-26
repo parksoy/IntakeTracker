@@ -98,22 +98,22 @@ Three slash commands were installed in `.claude/commands/`:
 - Keeps: legitimate error boundaries, non-obvious "why" comments
 - Reports a 1–3 sentence summary of changes
 
-**`/issue-manager [sync|close|board]`** — manages GitHub Issues and Projects:
-- `sync` — reads unchecked backlog items from PLAN.md, creates missing GitHub issues with labels, adds to project board
-- `close <name>` — closes the matching issue and marks PLAN.md item as done
+**`/issuemanager [sync|close|board]`** — manages GitHub Issues and Projects:
+- `sync` — reads unchecked backlog items from plan.md, creates missing GitHub issues with labels, adds to project board
+- `close <name>` — closes the matching issue and marks plan.md item as done
 - `board` — prints open issues grouped by priority label
 - Uses `gh` CLI under the hood
 
 #### 5. GitHub Issues and Projects setup
 
-**GitHub Issues:** Used to track every backlog item from PLAN.md. Labels mirror the priority tiers in the plan (`priority:high`, `priority:medium`, `priority:low`, `feature`, `chore`).
+**GitHub Issues:** Used to track every backlog item from plan.md. Labels mirror the priority tiers in the plan (`priority:high`, `priority:medium`, `priority:low`, `feature`, `chore`).
 
 **GitHub Projects:** A kanban board with columns:
-- **Backlog** — unchecked items from PLAN.md
+- **Backlog** — unchecked items from plan.md
 - **In Progress** — items with an open PR
 - **Done** — merged features
 
-The `/issue-manager sync` command populates Issues and adds them to the Project board automatically using `gh issue create` and `gh project item-add`.
+The `/issuemanager sync` command populates Issues and adds them to the Project board automatically using `gh issue create` and `gh project item-add`.
 
 ---
 
