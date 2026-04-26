@@ -5,6 +5,24 @@
 
 ---
 
+## Full Module 3 Checklist
+
+| Item | What was built |
+|------|---------------|
+| `CLAUDE.md` | Project context + 4 agent rules (syntax check, food data location, storage key contract, no fake UI verification) |
+| `AGENTS.md` | Testing protocol after each diff, lint/format rules, agent behavior for code review / PR review / design docs / testing / linting |
+| `.claude/settings.json` | PostToolUse syntax-check hook + context7 MCP server |
+| `/ship` | Commit → push → open PR, linked to GitHub issue |
+| `/deslop` | Remove AI slop vs main branch |
+| `/issuemanager` | Sync PLAN.md backlog → GitHub Issues + Project board |
+| `/code-review` | Structured review: correctness, storage contract, dead code, slop |
+| `/design-doc` | Generate design docs → `docs/design/<feature>.md` |
+| `/lint-check` | Full pipeline: node --check → lint:fix → format → final lint pass |
+| ESLint | `eslint.config.js` with expo preset, zero errors on codebase |
+| Prettier | `.prettierrc`, `npm run format` applied to all JS files |
+
+---
+
 ## Exercise: Integrate a configuration file, custom rules, commands, and hooks
 
 ### What was done
