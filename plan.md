@@ -94,9 +94,9 @@ Scan the QR code with iPhone Camera app → opens in Expo Go.
 **Agent 1 Steps (Left pane):**
 - [x] Install EAS CLI + login
 - [x] `eas build:configure` — creates `eas.json`, updates `app.json` with bundle ID + Apple Team
-- [x] `eas build --platform ios --profile production` — build submitted, compiling in Expo cloud
-- [ ] Submit to TestFlight: `eas submit --platform ios`
-- [ ] Install on iPhone via TestFlight → verify home screen icon + works with iMac off
+- [x] `eas build --platform ios --profile production` — triggers cloud build (~15–20 min)
+- [x] Submit to TestFlight: `eas submit --platform ios`
+- [x] Install on iPhone via TestFlight → verify home screen icon + works with iMac off
 
 **Agent 2 Steps (Right pane):**
 - [ ] Update `storage.js` to persist logs across multiple days (keyed by date)
