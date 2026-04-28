@@ -23,6 +23,7 @@ Build a minimal iPhone app to track daily food intake using a Weight Watchers-in
 | 2026-04-13 (Session 3, continued) | Resolved Expo Go tunnel issue: installed @expo/ngrok, got app running on iPhone |
 | 2026-04-13 (Session 3, continued) | Decided to pursue standalone build (Phase 3) so app runs without iMac server |
 | 2026-04-12 (Session 4) | Apple Developer account purchased. Multi-agent plan set: 2 agents (EAS Build + Features) in iTerm2 2-pane split |
+| 2026-04-28 (Session 5) | Serving size multiplier label fixed (Eggs ×2). Phase 3 complete — first TestFlight build installed. Issue board synced (#8, #9 created). Overnight async loop started via tmux + /loop 60m. See docs/session-2026-04-28.md. |
 
 ---
 
