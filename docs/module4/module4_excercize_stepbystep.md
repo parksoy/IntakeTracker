@@ -52,20 +52,13 @@ When done, open a pull request against the claude/food-tracker-app-uMLdp branch.
 
 ---
 
-### Step 2 — Devin reviews the PR
+### Step 2 — Agent reviews the PR
 
-Once claude.ai/code opens a PR on `parksoy/IntakeTracker`:
+Once claude.ai/code opens a PR on `parksoy/IntakeTracker`, use an async agent reviewer.
 
-1. Invite Devin to the GitHub repo (or use `@devin-ai-integration` in a PR comment)
-2. Ask Devin to review the PR:
-   ```
-   @devin-ai-integration please review this PR. Focus on:
-   - Does the multiplier reset correctly when a different food is selected?
-   - Does it apply to custom food entries (manual name + points input)?
-   - Are point values multiplied correctly (integer, not float like "4.0")?
-   - Does node --check pass on the edited files?
-   ```
-3. Devin runs async and posts review comments.
+**What we used: Claude Review** (Devin requires a paid subscription; Claude Review satisfies the exercise requirement — the exercise lists "Codex/Claude-based review" as a valid option).
+
+Trigger Claude Review on PR #7 from the GitHub PR page. It runs async and posts review comments on the diff.
 
 ---
 
