@@ -115,7 +115,7 @@ React Native UI changes cannot be verified by running Node scripts. If you canno
 - [x] ~~Fix/verify Expo Go QR scan error~~ — moot once EAS build is live
 - [ ] **[Agent 1]** EAS Build configured + first TestFlight build
 - [ ] **[Agent 2]** History view — see past days' logs
-- [ ] **[Agent 2]** Serving size multiplier (e.g., 2x a food item)
+- [x] **[Agent 2]** Serving size multiplier (e.g., Eggs ×2)
 - [ ] **[Agent 2]** Recently used / favorite foods
 - [ ] Weekly/monthly point summary
 - [ ] Push notifications / reminders

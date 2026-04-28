@@ -101,7 +101,7 @@ Scan the QR code with iPhone Camera app → opens in Expo Go.
 **Agent 2 Steps (Right pane):**
 - [ ] Update `storage.js` to persist logs across multiple days (keyed by date)
 - [ ] Build `HistoryScreen.js` — list of past days with total points + entries
-- [ ] Add serving size multiplier to `AddFoodModal.js` (stepper: 1×/2×/3×) — **in progress via claude.ai/code async agent (Module 4 Exercise 1)**
+- [x] Add serving size multiplier to `AddFoodModal.js` (stepper: 1× / 2× / 3×) — logs "Eggs ×2", integer points
 - [ ] Add "Recently Used" section at top of food list (last 5 logged items)
 
 **Notes:**
