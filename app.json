@@ -18,7 +18,8 @@
       "appleTeamId": "NK2Q5QYAPT",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {

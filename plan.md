@@ -101,7 +101,7 @@ Scan the QR code with iPhone Camera app → opens in Expo Go.
 **Agent 2 Steps (Right pane):**
 - [ ] Update `storage.js` to persist logs across multiple days (keyed by date)
 - [ ] Build `HistoryScreen.js` — list of past days with total points + entries
-- [ ] Add serving size multiplier to `AddFoodModal.js` (stepper: 1x / 2x / 3x)
+- [ ] Add serving size multiplier to `AddFoodModal.js` (stepper: 1×/2×/3×) — **in progress via claude.ai/code async agent (Module 4 Exercise 1)**
 - [ ] Add "Recently Used" section at top of food list (last 5 logged items)
 
 **Notes:**
@@ -120,7 +120,7 @@ These are ideas for future sessions — none are committed to. Prioritize after 
 | Priority | Feature | Notes |
 |----------|---------|-------|
 | High | History screen | View past days' logs; requires storing multiple days in AsyncStorage |
-| High | Serving size multiplier | Log "2x Eggs" instead of tapping twice |
+| High | Serving size multiplier | Log "Eggs ×2" instead of tapping twice — in progress via claude.ai/code |
 | Medium | Recently used foods | Auto-surface last 5 logged foods at top |
 | Medium | Favorites | Pin frequently eaten foods |
 | Low | Weekly summary | Total points per day over 7 days, bar chart |
