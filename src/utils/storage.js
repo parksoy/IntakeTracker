@@ -100,3 +100,22 @@ export async function saveRecentlyUsed(foodItem) {
     // silently fail
   }
 }
+
+// Load pinned food names. Returns [] on error or first use.
+export async function loadFavorites() {
+  try {
+    const raw = await AsyncStorage.getItem('intake_favorites');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save pinned food names array
+export async function saveFavorites(names) {
+  try {
+    await AsyncStorage.setItem('intake_favorites', JSON.stringify(names));
+  } catch {
+    // silently fail
+  }
+}

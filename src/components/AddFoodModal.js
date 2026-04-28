@@ -12,20 +12,22 @@ import {
   Platform,
 } from 'react-native';
 import { ZERO_POINT_FOODS, TRACKED_FOODS } from '../data/foods';
-import { loadRecentlyUsed, saveRecentlyUsed } from '../utils/storage';
+import { loadRecentlyUsed, saveRecentlyUsed, loadFavorites, saveFavorites } from '../utils/storage';
 
 export default function AddFoodModal({ visible, onClose, onAdd }) {
-  const [activeTab, setActiveTab] = useState('zero'); // 'zero' | 'tracked'
+  const [activeTab, setActiveTab] = useState('zero');
   const [search, setSearch] = useState('');
   const [customName, setCustomName] = useState('');
   const [customPoints, setCustomPoints] = useState('');
   const [servings, setServings] = useState(1);
-  const [recentlyUsed, setRecentlyUsed] = useState([]); // [{ name, points }, ...]
+  const [recentlyUsed, setRecentlyUsed] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     if (visible) {
       setServings(1);
       loadRecentlyUsed().then(setRecentlyUsed);
+      loadFavorites().then(setFavorites);
     }
   }, [visible]);
 
@@ -39,20 +41,40 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     return TRACKED_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
 
+  const favoriteFoods = useMemo(() => {
+    return favorites.map((name) => {
+      const zero = ZERO_POINT_FOODS.find((f) => f.name === name);
+      if (zero) return { ...zero, points: 0, isZero: true };
+      const tracked = TRACKED_FOODS.find((f) => f.name === name);
+      if (tracked) return { ...tracked, isZero: false };
+      return null;
+    }).filter(Boolean);
+  }, [favorites]);
+
+  const filteredFavorites = useMemo(() => {
+    if (!search) return favoriteFoods;
+    const q = search.toLowerCase();
+    return favoriteFoods.filter((f) => f.name.toLowerCase().includes(q));
+  }, [favoriteFoods, search]);
+
+  function toggleFavorite(food) {
+    const newFavs = favorites.includes(food.name)
+      ? favorites.filter((n) => n !== food.name)
+      : [...favorites, food.name];
+    setFavorites(newFavs);
+    saveFavorites(newFavs);
+  }
+
   function addEntry(baseName, basePoints) {
     const now = new Date();
     const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const name = servings > 1 ? `${baseName} ×${servings}` : baseName;
     const points = basePoints * servings;
-    const item = { name, points };
     saveRecentlyUsed({ name: baseName, points: basePoints });
     setRecentlyUsed((prev) =>
-      [{ name: baseName, points: basePoints }, ...prev.filter((f) => f.name !== baseName)].slice(
-        0,
-        5
-      )
+      [{ name: baseName, points: basePoints }, ...prev.filter((f) => f.name !== baseName)].slice(0, 5)
     );
-    onAdd({ id: Date.now().toString(), ...item, time });
+    onAdd({ id: Date.now().toString(), name, points, time });
   }
 
   function handleAddPreset(food) {
@@ -75,6 +97,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
   }
 
   function renderZeroItem({ item }) {
+    const isFav = favorites.includes(item.name);
     return (
       <TouchableOpacity
         style={styles.listRow}
@@ -88,11 +111,15 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
         <View style={styles.zeroBadge}>
           <Text style={styles.zeroText}>FREE</Text>
         </View>
+        <TouchableOpacity onPress={() => toggleFavorite(item)} style={styles.starBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={isFav ? styles.starActive : styles.starInactive}>{isFav ? '★' : '☆'}</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   }
 
   function renderTrackedItem({ item }) {
+    const isFav = favorites.includes(item.name);
     return (
       <TouchableOpacity
         style={styles.listRow}
@@ -106,41 +133,68 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
         <View style={styles.pointsBadge}>
           <Text style={styles.pointsText}>{item.points} pts</Text>
         </View>
+        <TouchableOpacity onPress={() => toggleFavorite(item)} style={styles.starBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={isFav ? styles.starActive : styles.starInactive}>{isFav ? '★' : '☆'}</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   }
 
-  const recentSection =
-    recentlyUsed.length > 0 ? (
-      <View style={styles.recentSection}>
-        <Text style={styles.recentLabel}>Recently Used</Text>
-        {recentlyUsed.map((food) => {
-          const isZero = food.points === 0;
-          return (
-            <TouchableOpacity
-              key={food.name}
-              style={styles.listRow}
-              onPress={() => handleAddPreset(food)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.listInfo}>
-                <Text style={styles.listName}>{food.name}</Text>
-                <Text style={styles.listCategory}>Recently used</Text>
-              </View>
-              {isZero ? (
-                <View style={styles.zeroBadge}>
-                  <Text style={styles.zeroText}>FREE</Text>
+  function renderFavItem(food) {
+    return (
+      <TouchableOpacity key={food.name} style={styles.listRow} onPress={() => handleAddPreset(food)} activeOpacity={0.7}>
+        <View style={styles.listInfo}>
+          <Text style={styles.listName}>{food.name}</Text>
+          <Text style={styles.listCategory}>{food.category}</Text>
+        </View>
+        {food.isZero ? (
+          <View style={styles.zeroBadge}><Text style={styles.zeroText}>FREE</Text></View>
+        ) : (
+          <View style={styles.pointsBadge}><Text style={styles.pointsText}>{food.points} pts</Text></View>
+        )}
+        <TouchableOpacity onPress={() => toggleFavorite(food)} style={styles.starBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.starActive}>★</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  }
+
+  const listHeader = (
+    <>
+      {filteredFavorites.length > 0 && (
+        <View style={styles.favSection}>
+          <Text style={styles.favSectionLabel}>FAVORITES</Text>
+          {filteredFavorites.map(renderFavItem)}
+        </View>
+      )}
+      {recentlyUsed.length > 0 && (
+        <View style={styles.recentSection}>
+          <Text style={styles.recentLabel}>Recently Used</Text>
+          {recentlyUsed.map((food) => {
+            const isZero = food.points === 0;
+            return (
+              <TouchableOpacity
+                key={food.name}
+                style={styles.listRow}
+                onPress={() => handleAddPreset(food)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.listInfo}>
+                  <Text style={styles.listName}>{food.name}</Text>
+                  <Text style={styles.listCategory}>Recently used</Text>
                 </View>
-              ) : (
-                <View style={styles.pointsBadge}>
-                  <Text style={styles.pointsText}>{food.points} pts</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    ) : null;
+                {isZero ? (
+                  <View style={styles.zeroBadge}><Text style={styles.zeroText}>FREE</Text></View>
+                ) : (
+                  <View style={styles.pointsBadge}><Text style={styles.pointsText}>{food.points} pts</Text></View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+    </>
+  );
 
   return (
     <Modal
@@ -154,7 +208,6 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Add Food</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
@@ -162,7 +215,6 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
             </TouchableOpacity>
           </View>
 
-          {/* Search */}
           <View style={styles.searchContainer}>
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
@@ -175,7 +227,6 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
             />
           </View>
 
-          {/* Servings stepper */}
           <View style={styles.servingsRow}>
             <Text style={styles.servingsLabel}>Servings</Text>
             <View style={styles.stepper}>
@@ -194,7 +245,6 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
             </View>
           </View>
 
-          {/* Tabs */}
           <View style={styles.tabs}>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'zero' && styles.tabActive]}
@@ -214,7 +264,6 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
             </TouchableOpacity>
           </View>
 
-          {/* List */}
           {activeTab === 'zero' ? (
             <FlatList
               data={filteredZero}
@@ -222,7 +271,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
               renderItem={renderZeroItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
-              ListHeaderComponent={recentSection}
+              ListHeaderComponent={listHeader}
               ListEmptyComponent={<Text style={styles.emptyText}>No foods found</Text>}
             />
           ) : (
@@ -232,7 +281,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
               renderItem={renderTrackedItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
-              ListHeaderComponent={recentSection}
+              ListHeaderComponent={listHeader}
               ListEmptyComponent={<Text style={styles.emptyText}>No foods found</Text>}
               ListFooterComponent={
                 <View style={styles.customSection}>
@@ -411,6 +460,17 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 8,
   },
+  favSection: {
+    marginBottom: 8,
+  },
+  favSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9E9E9E',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 2,
+  },
   recentSection: {
     marginBottom: 8,
   },
@@ -472,6 +532,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#E65100',
+  },
+  starBtn: {
+    marginLeft: 8,
+    padding: 4,
+  },
+  starActive: {
+    fontSize: 18,
+    color: '#F9A825',
+  },
+  starInactive: {
+    fontSize: 18,
+    color: '#BDBDBD',
   },
   emptyText: {
     textAlign: 'center',
