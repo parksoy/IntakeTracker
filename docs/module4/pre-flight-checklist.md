@@ -172,9 +172,12 @@ gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1M --field
 gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1o --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
 ```
 
-**Step 3 — Split the VSCode terminal:** `` ⌘\ `` — left pane and right pane side by side.
+**Step 3 — Create two additional terminal panes:** press `` ⌘\ `` **twice**. You now have 3 panes:
+- **Pane 1 (left)** — this current session, keep it for talking to Claude Code
+- **Pane 2 (middle)** — Agent 1 goes here
+- **Pane 3 (right)** — Agent 2 goes here
 
-**Step 4 — LEFT terminal:**
+**Step 4 — MIDDLE pane (Agent 1):** switch with `⌘Option→`
 ```bash
 cd ~/Desktop/IntakeTracker-agent1
 claude "Read CLAUDE.md and plan.md first — they have full project context.
@@ -200,7 +203,7 @@ Rules:
 When done: commit, push branch to origin, open a PR against main."
 ```
 
-**Step 5 — RIGHT terminal:**
+**Step 5 — RIGHT pane (Agent 2):** switch with `⌘Option→`
 ```bash
 cd ~/Desktop/IntakeTracker-agent2
 claude "Read CLAUDE.md and plan.md first — they have full project context.
