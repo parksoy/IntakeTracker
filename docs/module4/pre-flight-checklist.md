@@ -172,10 +172,12 @@ gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1M --field
 gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1o --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
 ```
 
-**Step 3 — Create two additional terminal panes:** press `` ⌘\ `` **twice**. You now have 3 panes:
-- **Pane 1 (left)** — this current session, keep it for talking to Claude Code
+**Step 3 — Create two additional terminal panes:** press `` ⌘\ `` **twice** (not once — you need 2 NEW panes on top of the current one). You now have 3 panes total:
+- **Pane 1 (left)** — this current Claude Code session — keep it here
 - **Pane 2 (middle)** — Agent 1 goes here
 - **Pane 3 (right)** — Agent 2 goes here
+
+> ⚠️ Critical: if you only press ⌘\ once, you get 2 panes and Agent 1 displaces your Claude Code session.
 
 **Step 4 — MIDDLE pane (Agent 1):** switch with `⌘Option→`
 ```bash
@@ -302,13 +304,26 @@ When done: commit, push branch to origin, open a PR against main."
 
 ---
 
-## 7 — PR Review Checklist (per PR, before merging)
+## 7 — PR Review + Posting Results to GitHub
+
+Review using the `/review` skill in Claude Code, then **manually post the result as a PR comment** — it does not post automatically.
+
+```bash
+# After running /review in Claude Code, post the result yourself:
+gh pr comment <number> --repo parksoy/IntakeTracker --body "## Code Review
+<paste review output here>"
+```
+
+> ⚠️ Critical miss: review results shown in Claude Code stay local. GitHub PR page will not reflect them unless you explicitly post via `gh pr comment`. GitHub also blocks `gh pr review --approve` on your own PRs — use `gh pr comment` instead.
+
+### Review checklist (per PR)
 
 - [ ] `node --check` passed on every edited JS file
 - [ ] No files touched outside the agent's ownership list
 - [ ] No hardcoded food names or point values
 - [ ] No changes to storage key names (`intake_log_`, `intake_recently_used`, `intake_favorites`)
 - [ ] Diff is scoped — no unrelated reformatting
+- [ ] Review comment posted to GitHub PR page via `gh pr comment`
 
 ---
 
