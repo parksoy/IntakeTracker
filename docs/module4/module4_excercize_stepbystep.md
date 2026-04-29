@@ -1,32 +1,28 @@
-## Exercise 1 — Step-by-Step: Async Feature via Cloud Agent + Devin Review
+## Exercise 1 — Step-by-Step: Async Feature via Cloud Agent + Agent Review
 
 Reference: [async_feature_or_fix.md](async_feature_or_fix.md)
 
 ---
 
-### Task chosen: Serving size multiplier in `AddFoodModal.js`
+### Task chosen: Serving size multiplier label format in `AddFoodModal.js`
 
-**Why this task:**
-- Single-file change (`src/components/AddFoodModal.js`), no storage or food data changes needed
-- Clear spec already in `plan.md` and `CLAUDE.md`
-- Syntax verifiable via `node --check` — no device required to validate
-- Well-scoped: add multiplier state + stepper UI + multiply points on submit
+**What the cloud agent found:** The multiplier feature (stepper UI, servings state, point math) was already implemented. Only the logged food name format was wrong: `"2x Eggs"` instead of the spec's `"Eggs ×2"`. One-line fix in `addEntry()`.
 
 **Exercise goals covered:**
 | Goal | How |
 |------|-----|
-| Select a concrete feature | Serving size multiplier (1×/2×/3×) |
-| Kick off from async surface | claude.ai/code connected to GitHub repo |
-| Review the agent's work | Devin reviews the resulting PR |
-| Drive to completion with iterations | Respond to Devin's review comments, agent re-pushes |
+| Select a concrete feature/fix | Label format fix for serving size multiplier |
+| Kick off from async surface | claude.ai/code connected to `parksoy/IntakeTracker` on GitHub |
+| Review the agent's work | Claude Review on PR #7 (Devin requires paid subscription) |
+| Drive to completion with iterations | Agent self-reviewed all 4 focus areas, all passed |
 
 ---
 
 ### Step 1 — Kick off on claude.ai/code
 
-1. Go to `claude.ai/code`
+1. Go to `claude.ai/code` → New Session
 2. Connect repo: `parksoy/IntakeTracker`
-3. Paste the following prompt:
+3. Paste prompt (see lines 31–49 of this file's original version, or below):
 
 ```
 Read CLAUDE.md and plan.md first — they contain full project context and agent rules.
@@ -48,34 +44,48 @@ Rules (from CLAUDE.md):
 When done, open a pull request against the claude/food-tracker-app-uMLdp branch.
 ```
 
-4. Start the task and close the tab — the agent runs async on Anthropic's cloud servers.
+4. Close the tab — agent runs async on Anthropic's cloud servers.
 
 ---
 
-### Step 2 — Agent reviews the PR
+### Step 2 — Agent reviews the PR (what actually happened)
 
-Once claude.ai/code opens a PR on `parksoy/IntakeTracker`, use an async agent reviewer.
+Cloud agent opened **PR #7** (`claude/async-features-intaketracker-UxuYQ`). Devin was not available (paid subscription required). Claude Review was used instead — the agent self-reviewed the PR covering all 4 focus areas:
 
-**What we used: Claude Review** (Devin requires a paid subscription; Claude Review satisfies the exercise requirement — the exercise lists "Codex/Claude-based review" as a valid option).
-
-Trigger Claude Review on PR #7 from the GitHub PR page. It runs async and posts review comments on the diff.
-
----
-
-### Step 3 — Iterate to completion
-
-- Review Devin's comments and any comments you have on the diff.
-- Leave specific PR comments pointing to lines that need changes.
-- The claude.ai/code agent (or you locally) pushes fixes.
-- Re-request Devin review if needed.
-- Merge when the diff looks correct.
+| Review question | Result |
+|---|---|
+| Multiplier resets when different food selected? | ✓ Pass — `setServings(1)` in `useEffect` on modal open |
+| Applies to custom food entries? | ✓ Pass — `handleAddCustom()` calls `addEntry()` which reads `servings` |
+| Integer points, not floats? | ✓ Pass — preset points are integer literals; custom uses `parseInt()` |
+| `node --check` passes? | ✓ Pass |
 
 ---
 
-### What to verify before merging (no device needed)
+### Step 3 — What the cloud agent also did (beyond the task)
+
+- Updated `CLAUDE.md` and `PLAN.md` on its branch marking multiplier complete
+- Ran `/issuemanager` — created Issues #8 (history screen) and #9 (recently used foods)
+- Closed Issue #1 (EAS Build — confirmed complete via TestFlight)
+- Discussed and set up an overnight `/loop` in tmux for autonomous issue work
+
+---
+
+### Step 4 — Merge order (still pending)
+
+Two PRs are open. Must merge in this order:
+
+| PR | Branch | Scope | Action |
+|---|---|---|---|
+| **#6** | `feature/food-features` | History, recently used, EAS config, multi-day storage, plan.md | Merge first |
+| **#7** | `claude/async-features-intaketracker-UxuYQ` | Label fix + CLAUDE.md/PLAN.md updates | Merge after #6 |
+
+After both merge: close Issues #8 and #9 (covered by PR #6).
+
+---
+
+### Pre-merge checklist
 
 - [ ] `node --check src/components/AddFoodModal.js` passes
-- [ ] `node --check App.js` passes (if modified)
 - [ ] Multiplier label format is `×2` not `x2` or `x 2.0`
 - [ ] Custom food entry respects the multiplier
 - [ ] Zero-point foods remain at 0 points regardless of multiplier
