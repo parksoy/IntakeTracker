@@ -13,6 +13,7 @@ import PointsRing from './src/components/PointsRing';
 import FoodLogItem from './src/components/FoodLogItem';
 import AddFoodModal from './src/components/AddFoodModal';
 import HistoryScreen from './src/components/HistoryScreen';
+import WeeklyScreen from './src/components/WeeklyScreen';
 import { loadTodayLog, saveTodayLog, clearTodayLog } from './src/utils/storage';
 
 const DAILY_LIMIT = 23;
@@ -21,6 +22,7 @@ export default function App() {
   const [log, setLog] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
+  const [weeklyVisible, setWeeklyVisible] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Load today's log on mount (also handles day-reset automatically)
@@ -87,9 +89,14 @@ export default function App() {
           <Text style={styles.appName}>IntakeTracker</Text>
           <Text style={styles.dateText}>{today}</Text>
         </View>
-        <TouchableOpacity onPress={() => setHistoryVisible(true)} style={styles.historyBtn}>
-          <Text style={styles.historyBtnText}>History</Text>
-        </TouchableOpacity>
+        <View style={styles.headerBtns}>
+          <TouchableOpacity onPress={() => setWeeklyVisible(true)} style={styles.historyBtn}>
+            <Text style={styles.historyBtnText}>Week</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setHistoryVisible(true)} style={styles.historyBtn}>
+            <Text style={styles.historyBtnText}>History</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -148,6 +155,7 @@ export default function App() {
       />
 
       <HistoryScreen visible={historyVisible} onClose={() => setHistoryVisible(false)} />
+      <WeeklyScreen visible={weeklyVisible} onClose={() => setWeeklyVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -174,6 +182,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  headerBtns: {
+    flexDirection: 'row',
+    gap: 8,
   },
   historyBtn: {
     paddingVertical: 6,
