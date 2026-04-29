@@ -12,6 +12,7 @@ import {
 import PointsRing from './src/components/PointsRing';
 import FoodLogItem from './src/components/FoodLogItem';
 import AddFoodModal from './src/components/AddFoodModal';
+import HistoryScreen from './src/components/HistoryScreen';
 import { loadTodayLog, saveTodayLog, clearTodayLog } from './src/utils/storage';
 
 const DAILY_LIMIT = 23;
@@ -19,11 +20,12 @@ const DAILY_LIMIT = 23;
 export default function App() {
   const [log, setLog] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Load today's log on mount (also handles day-reset automatically)
   useEffect(() => {
-    loadTodayLog().then(entries => {
+    loadTodayLog().then((entries) => {
       setLog(entries);
       setLoading(false);
     });
@@ -32,7 +34,7 @@ export default function App() {
   const totalPoints = log.reduce((sum, entry) => sum + entry.points, 0);
 
   const handleAddFood = useCallback(async (entry) => {
-    setLog(prev => {
+    setLog((prev) => {
       const updated = [entry, ...prev];
       saveTodayLog(updated);
       return updated;
@@ -40,29 +42,25 @@ export default function App() {
   }, []);
 
   const handleDelete = useCallback(async (id) => {
-    setLog(prev => {
-      const updated = prev.filter(e => e.id !== id);
+    setLog((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
       saveTodayLog(updated);
       return updated;
     });
   }, []);
 
   const handleClearDay = useCallback(() => {
-    Alert.alert(
-      'Clear Today',
-      'Remove all food entries for today?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => {
-            setLog([]);
-            clearTodayLog();
-          },
+    Alert.alert('Clear Today', 'Remove all food entries for today?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: () => {
+          setLog([]);
+          clearTodayLog();
         },
-      ]
-    );
+      },
+    ]);
   }, []);
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -85,16 +83,19 @@ export default function App() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.appName}>IntakeTracker</Text>
-        <Text style={styles.dateText}>{today}</Text>
+        <View>
+          <Text style={styles.appName}>IntakeTracker</Text>
+          <Text style={styles.dateText}>{today}</Text>
+        </View>
+        <TouchableOpacity onPress={() => setHistoryVisible(true)} style={styles.historyBtn}>
+          <Text style={styles.historyBtnText}>History</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={log}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <FoodLogItem item={item} onDelete={handleDelete} />
-        )}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <FoodLogItem item={item} onDelete={handleDelete} />}
         ListHeaderComponent={
           <View>
             {/* Points Ring */}
@@ -145,6 +146,8 @@ export default function App() {
           setModalVisible(false);
         }}
       />
+
+      <HistoryScreen visible={historyVisible} onClose={() => setHistoryVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -165,9 +168,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  historyBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 8,
+  },
+  historyBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
   },
   appName: {
     fontSize: 22,

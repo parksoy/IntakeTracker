@@ -13,7 +13,13 @@
       "backgroundColor": "#F5F5F5"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.soyoungpark.intaketracker",
+      "appleTeamId": "NK2Q5QYAPT",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +30,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "07750ab0-dced-4ae1-b388-d2777d67e2ee"
+      }
+    },
+    "owner": "parksoy"
   }
 }

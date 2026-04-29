@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -12,35 +12,57 @@ import {
   Platform,
 } from 'react-native';
 import { ZERO_POINT_FOODS, TRACKED_FOODS } from '../data/foods';
+import { loadRecentlyUsed, saveRecentlyUsed } from '../utils/storage';
 
 export default function AddFoodModal({ visible, onClose, onAdd }) {
   const [activeTab, setActiveTab] = useState('zero'); // 'zero' | 'tracked'
   const [search, setSearch] = useState('');
   const [customName, setCustomName] = useState('');
   const [customPoints, setCustomPoints] = useState('');
+  const [servings, setServings] = useState(1);
+  const [recentlyUsed, setRecentlyUsed] = useState([]); // [{ name, points }, ...]
+
+  useEffect(() => {
+    if (visible) {
+      setServings(1);
+      loadRecentlyUsed().then(setRecentlyUsed);
+    }
+  }, [visible]);
 
   const filteredZero = useMemo(() => {
     const q = search.toLowerCase();
-    return ZERO_POINT_FOODS.filter(f => f.name.toLowerCase().includes(q));
+    return ZERO_POINT_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
 
   const filteredTracked = useMemo(() => {
     const q = search.toLowerCase();
-    return TRACKED_FOODS.filter(f => f.name.toLowerCase().includes(q));
+    return TRACKED_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
 
-  function handleAddPreset(food) {
+  function addEntry(baseName, basePoints) {
     const now = new Date();
     const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    onAdd({ id: Date.now().toString(), name: food.name, points: food.points ?? 0, time });
+    const name = servings > 1 ? `${servings}x ${baseName}` : baseName;
+    const points = basePoints * servings;
+    const item = { name, points };
+    saveRecentlyUsed({ name: baseName, points: basePoints });
+    setRecentlyUsed((prev) =>
+      [{ name: baseName, points: basePoints }, ...prev.filter((f) => f.name !== baseName)].slice(
+        0,
+        5
+      )
+    );
+    onAdd({ id: Date.now().toString(), ...item, time });
+  }
+
+  function handleAddPreset(food) {
+    addEntry(food.name, food.points ?? 0);
   }
 
   function handleAddCustom() {
     const pts = parseInt(customPoints, 10);
     if (!customName.trim() || isNaN(pts) || pts < 0) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    onAdd({ id: Date.now().toString(), name: customName.trim(), points: pts, time });
+    addEntry(customName.trim(), pts);
     setCustomName('');
     setCustomPoints('');
   }
@@ -54,7 +76,11 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   function renderZeroItem({ item }) {
     return (
-      <TouchableOpacity style={styles.listRow} onPress={() => handleAddPreset(item)} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.listRow}
+        onPress={() => handleAddPreset(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.listInfo}>
           <Text style={styles.listName}>{item.name}</Text>
           <Text style={styles.listCategory}>{item.category}</Text>
@@ -68,7 +94,11 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   function renderTrackedItem({ item }) {
     return (
-      <TouchableOpacity style={styles.listRow} onPress={() => handleAddPreset(item)} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.listRow}
+        onPress={() => handleAddPreset(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.listInfo}>
           <Text style={styles.listName}>{item.name}</Text>
           <Text style={styles.listCategory}>{item.category}</Text>
@@ -80,10 +110,50 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     );
   }
 
+  const recentSection =
+    recentlyUsed.length > 0 ? (
+      <View style={styles.recentSection}>
+        <Text style={styles.recentLabel}>Recently Used</Text>
+        {recentlyUsed.map((food) => {
+          const isZero = food.points === 0;
+          return (
+            <TouchableOpacity
+              key={food.name}
+              style={styles.listRow}
+              onPress={() => handleAddPreset(food)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.listInfo}>
+                <Text style={styles.listName}>{food.name}</Text>
+                <Text style={styles.listCategory}>Recently used</Text>
+              </View>
+              {isZero ? (
+                <View style={styles.zeroBadge}>
+                  <Text style={styles.zeroText}>FREE</Text>
+                </View>
+              ) : (
+                <View style={styles.pointsBadge}>
+                  <Text style={styles.pointsText}>{food.points} pts</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    ) : null;
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Add Food</Text>
@@ -103,6 +173,25 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
               onChangeText={setSearch}
               clearButtonMode="while-editing"
             />
+          </View>
+
+          {/* Servings stepper */}
+          <View style={styles.servingsRow}>
+            <Text style={styles.servingsLabel}>Servings</Text>
+            <View style={styles.stepper}>
+              {[1, 2, 3].map((n) => (
+                <TouchableOpacity
+                  key={n}
+                  style={[styles.stepperBtn, servings === n && styles.stepperBtnActive]}
+                  onPress={() => setServings(n)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.stepperText, servings === n && styles.stepperTextActive]}>
+                    {n}x
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Tabs */}
@@ -129,19 +218,21 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
           {activeTab === 'zero' ? (
             <FlatList
               data={filteredZero}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               renderItem={renderZeroItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
+              ListHeaderComponent={recentSection}
               ListEmptyComponent={<Text style={styles.emptyText}>No foods found</Text>}
             />
           ) : (
             <FlatList
               data={filteredTracked}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               renderItem={renderTrackedItem}
               contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
+              ListHeaderComponent={recentSection}
               ListEmptyComponent={<Text style={styles.emptyText}>No foods found</Text>}
               ListFooterComponent={
                 <View style={styles.customSection}>
@@ -233,10 +324,61 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#212121',
   },
+  servingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  servingsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#424242',
+  },
+  stepper: {
+    flexDirection: 'row',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    padding: 2,
+    gap: 2,
+  },
+  stepperBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  stepperBtnActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  stepperText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#757575',
+  },
+  stepperTextActive: {
+    color: '#2E7D32',
+    fontWeight: '600',
+  },
   tabs: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginTop: 12,
+    marginTop: 10,
     marginBottom: 4,
     backgroundColor: '#E0E0E0',
     borderRadius: 10,
@@ -268,6 +410,18 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
     paddingTop: 8,
+  },
+  recentSection: {
+    marginBottom: 8,
+  },
+  recentLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9E9E9E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginLeft: 2,
   },
   listRow: {
     flexDirection: 'row',

@@ -7,7 +7,9 @@ export default function FoodLogItem({ item, onDelete }) {
   return (
     <View style={styles.row}>
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {item.name}
+        </Text>
         <Text style={styles.time}>{item.time}</Text>
       </View>
       <View style={[styles.badge, isZero ? styles.zeroBadge : styles.pointsBadge]}>
@@ -15,7 +17,11 @@ export default function FoodLogItem({ item, onDelete }) {
           {isZero ? 'FREE' : `${item.points} pts`}
         </Text>
       </View>
-      <TouchableOpacity onPress={() => onDelete(item.id)} style={styles.deleteBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+      <TouchableOpacity
+        onPress={() => onDelete(item.id)}
+        style={styles.deleteBtn}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
         <Text style={styles.deleteIcon}>✕</Text>
       </TouchableOpacity>
     </View>

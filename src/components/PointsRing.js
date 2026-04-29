@@ -10,8 +10,8 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function getRingColor(used) {
   if (used > DAILY_LIMIT) return '#C62828'; // over budget — red
-  if (used >= 19) return '#EF6C00';          // caution — orange
-  return '#2E7D32';                          // safe — green
+  if (used >= 19) return '#EF6C00'; // caution — orange
+  return '#2E7D32'; // safe — green
 }
 
 export default function PointsRing({ used }) {
