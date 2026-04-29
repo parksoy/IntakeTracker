@@ -42,7 +42,7 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
   function addEntry(baseName, basePoints) {
     const now = new Date();
     const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const name = servings > 1 ? `${servings}x ${baseName}` : baseName;
+    const name = servings > 1 ? `${baseName} ×${servings}` : baseName;
     const points = basePoints * servings;
     const item = { name, points };
     saveRecentlyUsed({ name: baseName, points: basePoints });
