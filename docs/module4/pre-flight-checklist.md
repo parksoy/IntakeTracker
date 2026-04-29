@@ -1,6 +1,6 @@
 # Pre-Flight Checklist — True Async Multi-Agent Dev (VSCode, Local Laptop)
 
-**Context:** IntakeTracker repo. Laptop stays open + plugged in. Two agents run in parallel VSCode terminal splits, each owning non-overlapping files.
+**Context:** IntakeTracker repo. Laptop stays open + plugged in. Two agents run in parallel VSCode terminal splits, each in its own **git worktree** for true filesystem isolation.
 
 ---
 
@@ -8,7 +8,6 @@
 
 - [ ] **Disable sleep:** System Settings → Battery → Options → "Prevent automatic sleeping when plugged in" → ON
 - [ ] **Disable screen saver:** System Settings → Lock Screen → "Start screen saver after" → Never
-- [ ] **Keep VSCode open** as the host — do not quit it mid-run
 - [ ] **Confirm permissions allowlist** is in `.claude/settings.json`:
   ```json
   "permissions": {
@@ -20,78 +19,111 @@
     ]
   }
   ```
-  This prevents agents from pausing on routine read-only commands.
 
 ---
 
-## 1 — Issue Selection (before each session)
+## 1 — Issue Selection
 
-- [ ] Open GitHub Project board: `github.com/users/parksoy/projects/1`
-- [ ] Pick **2 issues** with zero file overlap (see ownership map below)
-- [ ] Confirm neither issue touches `App.js` at the same time — it's the most dangerous shared file
-- [ ] **Dark mode (#5) must always run solo** — it touches every StyleSheet in every component
+Open the GitHub Project board: `github.com/users/parksoy/projects/1`
 
-### File ownership map for remaining issues
+Pick 2 issues with zero file overlap:
 
-| Issue | Safe to parallel? | Owns | Must NOT touch |
-|-------|------------------|------|----------------|
+| Issue | Safe to parallel? | Owns exclusively | Must NOT touch |
+|-------|-----------------|------------------|----------------|
 | **#2** Weekly summary | ✅ Yes | `src/components/WeeklyScreen.js` (new), `App.js` | storage.js, other components |
 | **#3** Notifications | ✅ Yes (with #2) | `src/utils/notifications.js` (new), `app.json` | `App.js`, src/components/ |
-| **#5** Dark mode | ❌ Solo only | All component StyleSheets | — |
+| **#5** Dark mode | ❌ Solo only | All component StyleSheets | — run alone after #2 + #3 merge |
 
-**Safe pair for this session: #2 + #3** (no overlap at all if Agent 2 skips App.js wiring)
+**Safe pair for this session: #2 + #3**
 
 ---
 
-## 2 — Git State (immediately before launching agents)
+## 2 — Git State + Worktree Setup
 
-- [ ] `git status` → must be **clean** (no uncommitted changes)
-- [ ] `git pull` → must be on **latest main**
-- [ ] Confirm: `git branch` shows `* main`
-- [ ] Do NOT pre-create branches — let each agent branch from main at launch time
+Why worktrees? Each agent gets its **own directory on disk**. Agent 1's file edits are invisible to Agent 2's directory. No checkout conflicts, no shared index — true filesystem isolation without a second repo clone.
+
+```bash
+# 1. Confirm clean main
+git status          # must be clean
+git pull            # must be on latest main
+
+# 2. Create one worktree per agent (sibling directories to the main repo)
+git worktree add ~/Desktop/IntakeTracker-agent1 -b feature/weekly-summary
+git worktree add ~/Desktop/IntakeTracker-agent2 -b feature/notifications
+
+# Resulting layout:
+# ~/Desktop/IntakeTracker/          ← your main workspace (stays on main)
+# ~/Desktop/IntakeTracker-agent1/   ← Agent 1's isolated copy on feature/weekly-summary
+# ~/Desktop/IntakeTracker-agent2/   ← Agent 2's isolated copy on feature/notifications
+```
+
+- [ ] `git worktree list` — confirm 3 entries (main + 2 agents)
+- [ ] Each worktree already has the full codebase — no further setup needed
 
 ---
 
 ## 3 — VSCode Terminal Splits
 
-1. Open terminal: `` ⌘` `` or View → Terminal
-2. Split into two panes: click the **⊞ split icon** in the terminal toolbar, or right-click → Split Terminal
-3. Optional third pane for passive monitoring (see below)
+1. Open terminal: `` ⌘` ``
+2. Split into two: click **⊞ split icon** in terminal toolbar, or `⌘\`
+3. Optional third pane: passive PR monitor
 
 ```
-┌─────────────────────┬─────────────────────┐
-│  Terminal 1         │  Terminal 2         │
-│  Agent 1 — #2       │  Agent 2 — #3       │
-│  WeeklyScreen.js    │  notifications.js   │
-└─────────────────────┴─────────────────────┘
+┌───────────────────────┬───────────────────────┐
+│  Terminal 1           │  Terminal 2           │
+│  ~/IntakeTracker-     │  ~/IntakeTracker-     │
+│  agent1/              │  agent2/              │
+│  Issue #2             │  Issue #3             │
+│  WeeklyScreen.js      │  notifications.js     │
+└───────────────────────┴───────────────────────┘
 ```
 
 **Optional passive monitor (third split):**
 ```bash
 watch -n 15 "gh pr list --repo parksoy/IntakeTracker"
 ```
-Shows new PRs appearing without touching the agent terminals.
 
 ---
 
-## 4 — Agent Prompts (copy verbatim, one per terminal)
+## 4 — Move Issues to "In Progress" on Project Board
 
-### Agent 1 — Terminal 1 (Issue #2: Weekly Summary)
+Run these **before launching agents** so the board reflects live state:
 
+```bash
+# Move Issue #2 (weekly summary) → In Progress
+gh project item-edit 1 --owner parksoy \
+  --id PVTI_lAHOANERK84BVuVPzgrAL1M \
+  --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE \
+  --single-select-option-id 47fc9ee4
+
+# Move Issue #3 (notifications) → In Progress
+gh project item-edit 1 --owner parksoy \
+  --id PVTI_lAHOANERK84BVuVPzgrAL1o \
+  --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE \
+  --single-select-option-id 47fc9ee4
 ```
-claude "Read CLAUDE.md and plan.md first.
+
+---
+
+## 5 — Agent Prompts (paste into each terminal)
+
+### Terminal 1 — Agent 1 (Issue #2: Weekly Summary)
+
+```bash
+cd ~/Desktop/IntakeTracker-agent1
+claude "Read CLAUDE.md and plan.md first — they have full project context.
 
 Task: Implement Issue #2 — weekly/monthly point summary.
 
 File ownership — you may ONLY modify:
 - CREATE src/components/WeeklyScreen.js (new file)
-- MODIFY App.js — add a 'Week' button to the header and a state toggle to show WeeklyScreen
+- MODIFY App.js — add a 'Week' button to the header, state toggle to show WeeklyScreen
 
 Do NOT touch: storage.js, AddFoodModal.js, FoodLogItem.js, HistoryScreen.js, PointsRing.js, app.json, eas.json.
 
 Spec:
 - WeeklyScreen reads loadAllLogs() from src/utils/storage.js (already exists — do not change it)
-- Show last 7 days: date, total points used, simple bar or list
+- Show last 7 days: date, total points used, bar or list
 - Match existing brand color #2E7D32 and StyleSheet.create() pattern
 - No new dependencies
 
@@ -99,13 +131,14 @@ Rules:
 - After every JS file edit: node --check <file>
 - Do not hardcode food data — it lives in src/data/foods.js only
 
-When done: commit, push to a new branch, open a PR against main."
+When done: commit, push branch to origin, open a PR against main."
 ```
 
-### Agent 2 — Terminal 2 (Issue #3: Notifications)
+### Terminal 2 — Agent 2 (Issue #3: Notifications)
 
-```
-claude "Read CLAUDE.md and plan.md first.
+```bash
+cd ~/Desktop/IntakeTracker-agent2
+claude "Read CLAUDE.md and plan.md first — they have full project context.
 
 Task: Implement Issue #3 — push notification / daily reminder.
 
@@ -116,82 +149,143 @@ File ownership — you may ONLY modify:
 Do NOT touch: App.js, any file in src/components/, storage.js, eas.json.
 
 Spec:
-- Install expo-notifications if not present: npx expo install expo-notifications
+- If expo-notifications not installed: npx expo install expo-notifications
 - notifications.js exports: scheduleReminder(hour, minute) and cancelReminder()
-- Add a comment block at the top of notifications.js showing how to call it from App.js (do not modify App.js itself — UI wiring is a separate task)
+- Add a comment block at the top of notifications.js showing exactly how to call it from App.js (do not modify App.js itself — UI wiring is a separate task)
 - Use expo-notifications scheduling API
 
 Rules:
 - After every JS file edit: node --check <file>
 
-When done: commit, push to a new branch, open a PR against main."
+When done: commit, push branch to origin, open a PR against main."
 ```
 
 ---
 
-## 5 — Checkpoints During the Run
+## 6 — Checkpoints During the Run
 
 | Time | Action |
 |------|--------|
 | **+0 min** | Both agents launched. Note start time. |
-| **+15 min** | Quick visual check — are both terminals still running? Any permission prompt waiting for input? Accept if it's `npx expo install expo-notifications`. |
+| **+15 min** | Check both terminals — any permission prompt waiting? Accept `npx expo install expo-notifications` if it appears in Terminal 2. |
 | **+45 min** | Look for "PR opened" output in either terminal. |
-| **+60 min** | Review both PRs on GitHub. Read the full diff. |
-| **+75 min** | Merge whichever PR finished first. Run `git pull` on main. |
-| **+80 min** | Check second PR still merges cleanly. Merge it. |
-| **+85 min** | Close Issues #2 and #3 on GitHub Project board. |
-| **+90 min** | Optional: launch solo Agent 3 for dark mode (#5). |
+| **+60 min** | Review both PRs on GitHub — read the full diff. Check file ownership was respected. |
+| **+75 min** | Merge whichever PR finished first → `git pull` on main. |
+| **+80 min** | Merge second PR (no conflicts expected — different files). |
 
 ---
 
-## 6 — PR Review Checklist (per PR, before merging)
+## 7 — PR Review Checklist (per PR, before merging)
 
-- [ ] `node --check` passed on every edited JS file (agent should confirm in its output)
+- [ ] `node --check` passed on every edited JS file
 - [ ] No files touched outside the agent's ownership list
 - [ ] No hardcoded food names or point values
-- [ ] No changes to `storage.js` key names (`intake_log_`, `intake_recently_used`, `intake_favorites`)
-- [ ] Diff is scoped — no unrelated reformatting or import cleanup
+- [ ] No changes to storage key names (`intake_log_`, `intake_recently_used`, `intake_favorites`)
+- [ ] Diff is scoped — no unrelated reformatting
 
 ---
 
-## 7 — Post-Merge Cleanup
+## 8 — Post-Merge: Project Board + Cleanup
 
-- [ ] `git pull` on main to get latest
-- [ ] Delete merged branches locally: `git branch -d <branch-name>`
-- [ ] Confirm remote branches auto-deleted (gh pr merge --delete-branch)
-- [ ] Move closed issues to "Done" column on GitHub Project board
-- [ ] Update `plan.md` — mark completed items `[x]`
-- [ ] Run `git branch -a` — should only show `* main` + remotes/origin/main
+### Move closed issues to Done on Project board
+
+```bash
+# Issue #2 → Done
+gh project item-edit 1 --owner parksoy \
+  --id PVTI_lAHOANERK84BVuVPzgrAL1M \
+  --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE \
+  --single-select-option-id 98236657
+
+# Issue #3 → Done
+gh project item-edit 1 --owner parksoy \
+  --id PVTI_lAHOANERK84BVuVPzgrAL1o \
+  --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE \
+  --single-select-option-id 98236657
+
+# Close the issues on GitHub
+gh issue close 2 --repo parksoy/IntakeTracker --comment "Implemented in PR — WeeklyScreen.js added."
+gh issue close 3 --repo parksoy/IntakeTracker --comment "Implemented in PR — notifications.js added."
+```
+
+### Remove worktrees
+
+```bash
+# Remove agent worktrees (safe — branches already pushed and merged)
+git worktree remove ~/Desktop/IntakeTracker-agent1
+git worktree remove ~/Desktop/IntakeTracker-agent2
+
+# Delete local feature branches
+git branch -d feature/weekly-summary feature/notifications
+
+# Confirm only main remains
+git worktree list     # should show only ~/Desktop/IntakeTracker
+git branch -a         # should show only * main + remotes/origin/main
+```
+
+### Update plan.md
+
+```bash
+# Mark completed items [x] in plan.md, commit, push
+git add plan.md && git commit -m "Mark weekly summary and notifications complete"
+git push
+```
 
 ---
 
-## 8 — What We Learned (from the April 2026 session)
+## 9 — Lessons Learned (why worktrees, why the board)
 
-### What caused conflicts last time
-Multiple agents (cloud session + overnight loop + local edits) all touched the same files (`AddFoodModal.js`, `plan.md`, `CLAUDE.md`) without strict ownership. Every conflict required manual, synchronous resolution — defeating the async goal entirely.
+### Why worktrees instead of just branching
 
-### Rules that prevent it
-1. **File ownership goes in the prompt** — CLAUDE.md rules alone are not enough. Agents from different surfaces (web, loop, CLI) don't share context between sessions.
-2. **Each agent branches from the latest merged main** — never from another agent's feature branch. Branching from a stale base guarantees conflicts.
-3. **One issue → one agent → one branch → one PR** — the moment two agents touch the same file, you need a synchronous merge session.
-4. **App.js is the highest-conflict file** — it's the root component that everyone wants to wire into. Assign it to exactly one agent per session, or wire it manually yourself after both agents finish.
-5. **Dark mode is always solo** — it modifies StyleSheet in every component file.
+Without worktrees, two agents share the same working directory. If Agent 1 checks out its branch and Agent 2 tries to do anything, they collide on the git index. Worktrees give each agent a **separate directory on disk** — Agent 1 edits files in `~/Desktop/IntakeTracker-agent1/`, Agent 2 edits files in `~/Desktop/IntakeTracker-agent2/`. They never see each other's in-progress changes.
 
-### GitHub Projects as the coordination layer
-- **Issue** = unit of work (one per agent)
-- **PR** = proof of completion
-- **Project column** = status visible to all agents and humans without reading session logs
+### Why the April 2026 session still had conflicts
 
-Board: `github.com/users/parksoy/projects/1`
+Even with separate branches, conflicts happened because:
+- The cloud agent, overnight loop, and local edits **all touched the same files** (`AddFoodModal.js`, `plan.md`, `CLAUDE.md`) without file ownership boundaries in their prompts
+- The overnight loop branched from a **stale base** (before PR #6 merged), so it re-implemented work that was already done
+- CLAUDE.md rules weren't enough — agents from different surfaces don't share session context
+
+### The three rules that prevent synchronous merge work
+
+1. **File ownership goes in the prompt** — not just CLAUDE.md. Each agent prompt above lists exactly which files it may touch.
+2. **Branch from latest main at launch time** — worktrees created immediately after `git pull`.
+3. **One issue → one agent → one PR** — if two agents touch the same file, conflicts are guaranteed.
+
+### GitHub Project board as async coordination
+
+| Signal | Meaning |
+|--------|---------|
+| Issue in **Todo** | Not started |
+| Issue in **In Progress** | Agent launched, branch exists |
+| Issue in **Done** | PR merged, branch deleted, issue closed |
+
+This lets you check project status without opening terminals, reading session logs, or asking an agent what it did.
 
 ---
 
-## Quick Reference — VSCode Keyboard Shortcuts
+## GitHub Project Board IDs (for reference)
+
+| Field | ID |
+|-------|----|
+| Status field | `PVTSSF_lAHOANERK84BVuVPzhRIFdE` |
+| Todo option | `f75ad846` |
+| In Progress option | `47fc9ee4` |
+| Done option | `98236657` |
+
+| Issue | Project Item ID |
+|-------|----------------|
+| #2 Weekly summary | `PVTI_lAHOANERK84BVuVPzgrAL1M` |
+| #3 Notifications | `PVTI_lAHOANERK84BVuVPzgrAL1o` |
+| #5 Dark mode | `PVTI_lAHOANERK84BVuVPzgrAL3M` |
+
+---
+
+## Quick Reference — VSCode Shortcuts
 
 | Action | Shortcut |
 |--------|----------|
 | Open terminal | `` ⌘` `` |
 | Split terminal | `⌘\` or click ⊞ icon |
-| Switch between terminal splits | `⌘Option←/→` |
-| Focus terminal / editor | `⌘J` (toggle) |
-| Kill current terminal process | `Ctrl+C` |
+| Switch between splits | `⌘Option←/→` |
+| Toggle terminal panel | `⌘J` |
+| Kill current process | `Ctrl+C` |
