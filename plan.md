@@ -100,10 +100,10 @@ Scan the QR code with iPhone Camera app → opens in Expo Go.
 - [x] Install on iPhone via TestFlight → verify home screen icon + works with iMac off
 
 **Agent 2 Steps (Right pane):**
-- [ ] Update `storage.js` to persist logs across multiple days (keyed by date)
-- [ ] Build `HistoryScreen.js` — list of past days with total points + entries
+- [x] Update `storage.js` to persist logs across multiple days (keyed by date)
+- [x] Build `HistoryScreen.js` — list of past days with total points + entries
 - [x] Add serving size multiplier to `AddFoodModal.js` (stepper: 1× / 2× / 3×) — logs "Eggs ×2", integer points
-- [ ] Add "Recently Used" section at top of food list (last 5 logged items)
+- [x] Add "Recently Used" section at top of food list (last 5 logged items)
 
 **Notes:**
 - **Xcode is NOT required** — EAS Build compiles entirely in Expo's cloud servers, nothing runs locally
