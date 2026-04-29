@@ -202,7 +202,8 @@ Rules:
 - After every JS file edit: node --check <file>
 - Do not hardcode food data — it lives in src/data/foods.js only
 
-When done: commit, push branch to origin, open a PR against main."
+When done: commit, push branch to origin, open a PR against main, then immediately merge it:
+gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
 ```
 
 **Step 5 — RIGHT pane (Agent 2):** switch with `⌘Option→`
@@ -227,7 +228,8 @@ Spec:
 Rules:
 - After every JS file edit: node --check <file>
 
-When done: commit, push branch to origin, open a PR against main."
+When done: commit, push branch to origin, open a PR against main, then immediately merge it:
+gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
 ```
 
 **Then step away.** Check back at **+15 min** for permission prompts, **+60 min** to review PRs.
@@ -260,7 +262,8 @@ Rules:
 - After every JS file edit: node --check <file>
 - Do not hardcode food data — it lives in src/data/foods.js only
 
-When done: commit, push branch to origin, open a PR against main."
+When done: commit, push branch to origin, open a PR against main, then immediately merge it:
+gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
 ```
 
 ### Terminal 2 — Agent 2 (Issue #3: Notifications)
@@ -286,7 +289,8 @@ Spec:
 Rules:
 - After every JS file edit: node --check <file>
 
-When done: commit, push branch to origin, open a PR against main."
+When done: commit, push branch to origin, open a PR against main, then immediately merge it:
+gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
 ```
 
 ---
