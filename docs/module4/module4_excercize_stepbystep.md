@@ -134,7 +134,44 @@ The exercise spec lists four async surfaces. We used three. Here's why the fourt
 | **Cloud platform (claude.ai/code)** | ✅ Session 1 | Kicked off serving size multiplier fix. Truly async — closed browser tab, agent ran on Anthropic's cloud. |
 | **Parallel agents locally** | ✅ Session 2 | VSCode 3-pane split + git worktrees. Not Conductor (no setup needed) — equivalent isolation via `git worktree add`. |
 | **GitHub agent review** | ✅ Both sessions | Claude Review via `/review` skill + `gh pr comment` to post results. Devin tried but requires paid Cognition subscription. |
-| **Communication channel (Slack)** | ❌ Skipped | No Slack workspace configured to trigger agents. GitHub PR comments served as the async communication layer instead — review comments on the PR function the same way: async, threaded, agent-readable. |
+| **Communication channel (Slack)** | ❌ Skipped | No Slack workspace configured to trigger agents. See note below — Slack unlocks a fundamentally different trigger model. |
+
+### Why Slack matters for async agentic dev (beyond what GitHub gives you)
+
+GitHub PR comments are async and agent-readable — but they're code-centric. You need to create an issue first, write a spec, open a browser, navigate to the right repo. The **trigger lives inside the developer toolchain**.
+
+Slack flips this: **the trigger lives where the conversation already is.**
+
+The real purpose of connecting Slack to an agent is to make natural language from anywhere the entry point for kicking off coding work:
+
+```
+[You, on your phone at 9pm]
+@claude the food search breaks when you type a space — fix it and open a PR
+
+[Agent, 8 minutes later, in the same thread]
+Fixed. Space was not being trimmed before toLowerCase() comparison.
+PR #14 opened: https://github.com/parksoy/IntakeTracker/pull/14
+Changed: src/components/AddFoodModal.js line 44
+node --check: ✓
+```
+
+What this unlocks that GitHub doesn't:
+
+1. **Phone/tablet trigger** — you spot a bug using the app, open Slack, describe it in plain English. No terminal, no GitHub browser tab, no issue template to fill out.
+
+2. **Natural language as the spec** — the thread IS the context. The agent reads the whole conversation to understand intent, not just a structured issue title. Ambiguous requests get clarified in thread replies before the agent acts.
+
+3. **Non-developer participation** — a designer or product owner can trigger an agent task from Slack without knowing git, GitHub, or how to write an issue. "Can you change the empty state text to say 'Tap + to start tracking'" is a valid trigger.
+
+4. **The channel as a task queue** — a team-shared channel becomes a live feed of agent tasks in flight. Everyone sees what was requested, what the agent did, and what PR was opened. No need to check GitHub to understand what's happening.
+
+5. **Proactive agent notifications** — agent posts back in Slack when it starts, when it opens a PR, when a check fails. You get a push notification rather than polling GitHub.
+
+The difference in mental model:
+- **GitHub flow:** you think of work → open GitHub → create issue → assign → wait
+- **Slack flow:** you notice something → say it → agent handles it → you review when notified
+
+For personal use (one developer, one repo), GitHub is sufficient. Slack becomes essential when: tasks come from multiple people, triggers happen from mobile, or you want natural language rather than structured issue creation as the entry point.
 
 ### On back-and-forth iterations
 
