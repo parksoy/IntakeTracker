@@ -146,6 +146,16 @@ gh project item-edit 1 --owner parksoy \
 
 All pre-flight checks done? Run these commands in sequence.
 
+> **Where to type each step:**
+> ```
+> [Current terminal pane]  →  Steps 1 & 2  (setup, runs once before splitting)
+>          ↓  ⌘\ to split
+> [LEFT pane]              →  Step 4  (Agent 1 prompt)
+> [RIGHT pane]             →  Step 5  (Agent 2 prompt)
+> ```
+> Steps 1 & 2 run in **this current pane** — wherever you are right now, before any split.
+> After Step 3 (split), this pane becomes the LEFT agent pane.
+
 **Step 1 — In the main terminal, create worktrees:**
 ```bash
 git pull
