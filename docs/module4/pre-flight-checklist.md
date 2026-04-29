@@ -202,8 +202,13 @@ Rules:
 - After every JS file edit: node --check <file>
 - Do not hardcode food data — it lives in src/data/foods.js only
 
-When done: commit, push branch to origin, open a PR against main, then immediately merge it:
-gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
+When done, run these in order:
+1. Commit and push branch to origin
+2. Open a PR against main: gh pr create --repo parksoy/IntakeTracker --base main --title "<title>" --body "<summary>"
+3. Merge it: gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker
+4. Close the issue: gh issue close 2 --repo parksoy/IntakeTracker --comment "Implemented in this PR."
+5. Move issue to Done on the project board:
+   gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrAL1M --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 98236657"
 ```
 
 **Step 5 — RIGHT pane (Agent 2):** switch with `⌘Option→`
@@ -228,8 +233,13 @@ Spec:
 Rules:
 - After every JS file edit: node --check <file>
 
-When done: commit, push branch to origin, open a PR against main, then immediately merge it:
-gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
+When done, run these in order:
+1. Commit and push branch to origin
+2. Open a PR against main: gh pr create --repo parksoy/IntakeTracker --base main --title "<title>" --body "<summary>"
+3. Merge it: gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker
+4. Close the issue: gh issue close 3 --repo parksoy/IntakeTracker --comment "Implemented in this PR."
+5. Move issue to Done on the project board:
+   gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrAL1o --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 98236657"
 ```
 
 **Then step away.** Check back at **+15 min** for permission prompts, **+60 min** to review PRs.
@@ -262,8 +272,12 @@ Rules:
 - After every JS file edit: node --check <file>
 - Do not hardcode food data — it lives in src/data/foods.js only
 
-When done: commit, push branch to origin, open a PR against main, then immediately merge it:
-gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
+When done, run these in order:
+1. Commit and push branch to origin
+2. Open a PR: gh pr create --repo parksoy/IntakeTracker --base main --title "<title>" --body "<summary>"
+3. Merge it: gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker
+4. Close the issue: gh issue close 2 --repo parksoy/IntakeTracker --comment "Implemented in this PR."
+5. Move to Done: gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrAL1M --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 98236657"
 ```
 
 ### Terminal 2 — Agent 2 (Issue #3: Notifications)
@@ -289,8 +303,12 @@ Spec:
 Rules:
 - After every JS file edit: node --check <file>
 
-When done: commit, push branch to origin, open a PR against main, then immediately merge it:
-gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker"
+When done, run these in order:
+1. Commit and push branch to origin
+2. Open a PR: gh pr create --repo parksoy/IntakeTracker --base main --title "<title>" --body "<summary>"
+3. Merge it: gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker
+4. Close the issue: gh issue close 3 --repo parksoy/IntakeTracker --comment "Implemented in this PR."
+5. Move to Done: gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrAL1o --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 98236657"
 ```
 
 ---
