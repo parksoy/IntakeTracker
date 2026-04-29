@@ -125,6 +125,50 @@ Review posted to both PRs via `gh pr comment`. Both merged cleanly. Issues #2 an
 
 ---
 
+## Coverage of Exercise Options Not Used
+
+The exercise spec lists four async surfaces. We used three. Here's why the fourth was skipped and what each looked like in practice:
+
+| Option | Used? | How / Why not |
+|--------|-------|---------------|
+| **Cloud platform (claude.ai/code)** | ✅ Session 1 | Kicked off serving size multiplier fix. Truly async — closed browser tab, agent ran on Anthropic's cloud. |
+| **Parallel agents locally** | ✅ Session 2 | VSCode 3-pane split + git worktrees. Not Conductor (no setup needed) — equivalent isolation via `git worktree add`. |
+| **GitHub agent review** | ✅ Both sessions | Claude Review via `/review` skill + `gh pr comment` to post results. Devin tried but requires paid Cognition subscription. |
+| **Communication channel (Slack)** | ❌ Skipped | No Slack workspace configured to trigger agents. GitHub PR comments served as the async communication layer instead — review comments on the PR function the same way: async, threaded, agent-readable. |
+
+### On back-and-forth iterations
+
+The exercise spec says "drive to completion including any follow-up iterations." In both sessions, reviews passed clean on the first pass — no iteration was needed. What iteration would look like if a review found issues:
+
+1. Post a specific PR comment: *"Line 45: multiplier not applied to custom food entry"*
+2. Agent picks up the comment (in claude.ai/code sessions, it subscribes to PR activity)
+3. Agent pushes a fix commit to the same branch
+4. Re-request review
+5. Merge when clean
+
+The pre-flight checklist now includes the full finish sequence in agent prompts — a future agent that hits a review comment would need the same loop: fix → push → re-review → merge.
+
+---
+
+## AI Coding Landscape: Tools Compared
+
+The README lesson plan includes "Evaluating the AI Coding Landscape / Taxonomy for Understanding Coding Agent Capabilities." Based on what we encountered:
+
+| Tool | Type | Async? | Needs machine on? | Cost | Used |
+|------|------|--------|-------------------|------|------|
+| **Claude Code CLI** | Local agent | No (interactive) | Yes | Pro subscription | ✅ Main tool |
+| **claude.ai/code** | Cloud agent | ✅ Yes | No | Pro subscription | ✅ Session 1 |
+| **tmux + /loop** | DIY orchestrator | ✅ Yes (if machine stays on) | Yes | Free | ✅ Overnight loop |
+| **Conductor** | Agent orchestrator | ✅ Yes | No | Paid | ❌ Not tried |
+| **Devin** | Autonomous cloud agent | ✅ Yes | No | Paid subscription | ❌ Unavailable |
+| **GitHub Copilot review** | PR review agent | ✅ Yes | No | GitHub subscription | ❌ Not set up |
+
+**Key axis: machine-on vs cloud-native.** For truly autonomous async work (close the laptop), only cloud-native options work — claude.ai/code or Devin. For local parallel work, tmux or VSCode splits with worktrees are sufficient if the machine stays on.
+
+**Agent orchestrator frameworks** (Conductor, LangGraph, custom harnesses) sit above individual agents — they route tasks, manage state across agent runs, and handle retries. Our tmux+/loop was a minimal DIY version of this. Production orchestrators add: task queuing, dependency graphs between agents, shared memory, and observability.
+
+---
+
 ## Lessons Learned: True Async Agentic Development
 
 ### What works
