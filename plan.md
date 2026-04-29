@@ -118,15 +118,15 @@ Scan the QR code with iPhone Camera app → opens in Expo Go.
 
 These are ideas for future sessions — none are committed to. Prioritize after Phase 3 is done.
 
-| Priority | Feature | Notes |
-|----------|---------|-------|
-| High | History screen | View past days' logs; requires storing multiple days in AsyncStorage |
-| High | Serving size multiplier | Log "Eggs ×2" instead of tapping twice — in progress via claude.ai/code |
-| Medium | Recently used foods | Auto-surface last 5 logged foods at top |
-| Medium | Favorites | Pin frequently eaten foods |
-| Low | Weekly summary | Total points per day over 7 days, bar chart |
-| Low | Daily reminder notification | Optional push notification at a set time |
-| Low | Dark mode | Already uses neutral grays, should be straightforward |
+| Priority | Feature | Status |
+|----------|---------|--------|
+| ~~High~~ | ~~History screen~~ | ✅ Done (PR #6) |
+| ~~High~~ | ~~Serving size multiplier~~ | ✅ Done (PR #11) |
+| ~~Medium~~ | ~~Recently used foods~~ | ✅ Done (PR #6) |
+| ~~Medium~~ | ~~Favorites / pinned foods~~ | ✅ Done (PR #10) |
+| Medium | Weekly summary | ⬜ Issue #2 — next up |
+| Low | Daily reminder notification | ⬜ Issue #3 — next up |
+| Low | Dark mode | ⬜ Issue #5 — solo only (touches all StyleSheets) |
 
 ---
 

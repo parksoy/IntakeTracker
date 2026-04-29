@@ -38,7 +38,42 @@ Pick 2 issues with zero file overlap:
 
 ---
 
-## 2 — Git State + Worktree Setup
+## 2 — Git State + Pre-launch File Checks
+
+### 2a — plan.md must not be stale
+
+Agents read `plan.md` first. If it still lists completed features as pending, agents will re-implement them.
+
+```bash
+# Check Phase 4 table — all shipped features must show ✅ Done
+grep -A 20 "Phase 4" plan.md
+```
+
+- [ ] History screen → ✅ Done
+- [ ] Serving size multiplier → ✅ Done
+- [ ] Recently used foods → ✅ Done
+- [ ] Favorites / pinned foods → ✅ Done
+- [ ] Weekly summary → ⬜ Issue #2 (next up)
+- [ ] Notifications → ⬜ Issue #3 (next up)
+- [ ] Dark mode → ⬜ Issue #5 (solo only)
+
+If anything is wrong: edit `plan.md`, `git add plan.md && git commit -m "Fix stale plan.md" && git push` before continuing.
+
+### 2b — Remove stale lock file
+
+The `.claude/scheduled_tasks.lock` file is written by `/loop` and `/schedule` sessions. If a previous session crashed or was killed, the lock stays on disk and can confuse new agents into thinking a task is already running.
+
+```bash
+# Check if lock exists and what session it points to
+cat .claude/scheduled_tasks.lock 2>/dev/null || echo "No lock — good"
+
+# Always remove before launching agents
+rm -f .claude/scheduled_tasks.lock && echo "Lock cleared"
+```
+
+- [ ] Lock file removed (or confirmed absent)
+
+### 2c — Git state + worktrees
 
 Why worktrees? Each agent gets its **own directory on disk**. Agent 1's file edits are invisible to Agent 2's directory. No checkout conflicts, no shared index — true filesystem isolation without a second repo clone.
 
@@ -47,18 +82,20 @@ Why worktrees? Each agent gets its **own directory on disk**. Agent 1's file edi
 git status          # must be clean
 git pull            # must be on latest main
 
-# 2. Create one worktree per agent (sibling directories to the main repo)
+# 2. Symlink node_modules into each worktree so npm run lint works
 git worktree add ~/Desktop/IntakeTracker-agent1 -b feature/weekly-summary
 git worktree add ~/Desktop/IntakeTracker-agent2 -b feature/notifications
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent1/node_modules
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent2/node_modules
 
 # Resulting layout:
 # ~/Desktop/IntakeTracker/          ← your main workspace (stays on main)
-# ~/Desktop/IntakeTracker-agent1/   ← Agent 1's isolated copy on feature/weekly-summary
-# ~/Desktop/IntakeTracker-agent2/   ← Agent 2's isolated copy on feature/notifications
+# ~/Desktop/IntakeTracker-agent1/   ← Agent 1's isolated copy, node_modules symlinked
+# ~/Desktop/IntakeTracker-agent2/   ← Agent 2's isolated copy, node_modules symlinked
 ```
 
 - [ ] `git worktree list` — confirm 3 entries (main + 2 agents)
-- [ ] Each worktree already has the full codebase — no further setup needed
+- [ ] `ls ~/Desktop/IntakeTracker-agent1/node_modules | head -3` — symlink works
 
 ---
 
