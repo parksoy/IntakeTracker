@@ -1,8 +1,9 @@
-# Module 4 Exercise 1 — Report: Async Agentic Development
+# Module 4 Exercise 1 — Final Report: Async Agentic Development
 
 **Exercise:** [Implement a feature or fix via an asynchronous platform](async_feature_or_fix.md)
 **Project:** IntakeTracker — WW-style 23-point iPhone food tracker
-**Date:** 2026-04-28 / 2026-04-29
+**Dates:** 2026-04-28 (Session 1) → 2026-04-29 (Session 2)
+**Runbook for future sessions:** [pre-flight-checklist.md](pre-flight-checklist.md)
 
 ---
 
@@ -10,178 +11,173 @@
 
 | Goal | Status |
 |------|--------|
-| Select a concrete feature or fix | ✅ Serving size multiplier label format fix |
-| Kick off from an async surface | ✅ claude.ai/code (cloud, no terminal needed) |
-| Review the agent's work | ✅ Claude Review on PR #7 (Devin not available — paid subscription required) |
-| Drive to completion with iterations | ✅ Agent self-reviewed all 4 focus areas; conflicts resolved in follow-up session |
+| Select a concrete feature or fix | ✅ Multiple features across two sessions |
+| Kick off from an async surface | ✅ Session 1: claude.ai/code (cloud). Session 2: VSCode parallel agents with git worktrees |
+| Review the agent's work | ✅ Claude Review + `gh pr comment` to post results to GitHub |
+| Drive to completion with iterations | ✅ PRs merged, issues closed, project board updated |
 
 ---
 
-## What We Did — Full Timeline
+## Session 1 — claude.ai/code (2026-04-28)
 
-### 1. Chose the task
+### Task: Serving size multiplier label format fix
 
-From the project backlog (`plan.md`), selected the **serving size multiplier** in `AddFoodModal.js`:
-- Single well-scoped file change
-- Clear spec already written in `CLAUDE.md` and `plan.md`
-- Syntax verifiable with `node --check` — no device needed
-- Low conflict risk: one file, one feature
+Selected from the backlog: one-line fix in `AddFoodModal.js`, syntax verifiable with `node --check`, no device needed.
 
-### 2. Kicked off on claude.ai/code (async cloud agent)
-
-- Go to `claude.ai/code` → New Session
-- Connect repo: `parksoy/IntakeTracker` (GitHub OAuth)
-- Pasted this prompt:
-
+**Prompt used:**
 ```
 Read CLAUDE.md and plan.md first — they contain full project context and agent rules.
-
 Task: Add a serving size multiplier to AddFoodModal.js.
-
-Spec:
-- Add a 1× / 2× / 3× stepper in the "Has Points" tab, visible above or near the Add button.
-- When the user adds a food item, multiply its point value by the selected multiplier before logging it.
-- The logged food name should reflect the multiplier, e.g. "Eggs ×2".
-- Zero-point foods do not need the multiplier (always free), but adding it for UX consistency is fine — just ensure points remain 0.
-- Only modify src/components/AddFoodModal.js and App.js if needed. Do not touch storage.js, foods.js, or eas.json.
-
-Rules (from CLAUDE.md):
-- After editing any JS file, run: node --check <edited-file-path>
-- If the check fails, fix the syntax error before finishing.
-- Do not hardcode food names or point values — all food data lives in src/data/foods.js only.
-
-When done, open a pull request against the claude/food-tracker-app-uMLdp branch.
+[full prompt in pre-flight-checklist.md § Section 6]
 ```
 
-- Closed the browser tab. Agent ran async on Anthropic's cloud servers.
+**What the cloud agent found and did:**
+- Multiplier was already implemented — only the label format was wrong (`2x Eggs` → `Eggs ×2`)
+- Fixed one line in `addEntry()`, ran `node --check`, opened PR #7
+- Autonomously also: updated CLAUDE.md + plan.md, ran `/issuemanager`, created Issues #8/#9, closed Issue #1
 
-### 3. What the cloud agent found and did
+**Code review:** Devin unavailable (paid subscription). Used Claude Review — the exercise lists "Codex/Claude-based review" as a valid option. Agent self-reviewed all 4 focus areas, all passed.
 
-**Key finding:** The serving size multiplier was already fully implemented (stepper UI, `servings` state, point multiplication). Only the logged food name format was wrong.
+**Critical miss discovered:** Review results stayed local in the Claude Code session. GitHub PR page had nothing. Fix: always post review via `gh pr comment` after `/review`. Also: GitHub blocks `gh pr review --approve` on your own PRs.
 
-**Fix (one line in `addEntry()`):**
-```js
-// Before
-const name = servings > 1 ? `${servings}x ${baseName}` : baseName;
-
-// After
-const name = servings > 1 ? `${baseName} ×${servings}` : baseName;
-```
-
-**Syntax check:** `node --check src/components/AddFoodModal.js` → ✓ syntax ok
-
-**PR opened:** PR #7 (`claude/async-features-intaketracker-UxuYQ` → `claude/food-tracker-app-uMLdp`)
-
-**The agent also did (autonomously, beyond the task):**
-- Updated `CLAUDE.md` and `PLAN.md` marking multiplier complete
-- Ran `/issuemanager` — created Issues #8 (history screen) and #9 (recently used foods) from unchecked `plan.md` items
-- Closed Issue #1 (EAS Build — confirmed complete after TestFlight install)
-- Discussed and set up an overnight `/loop` in tmux for autonomous issue work
-
-### 4. Code review (in place of Devin)
-
-Devin requires a paid Cognition account + GitHub App — not available. Used **Claude Review** instead, which the exercise explicitly lists as a valid option ("Codex/Claude-based review or auto-fix workflow").
-
-Agent self-reviewed PR #7 covering all 4 focus areas:
-
-| Review question | Result | Evidence |
-|---|---|---|
-| Multiplier resets when different food selected? | ✓ Pass | `setServings(1)` in `useEffect` on modal open; modal closes after each add |
-| Applies to custom food entries? | ✓ Pass | `handleAddCustom()` calls `addEntry()` which reads `servings` |
-| Integer points, not floats (e.g. "4.0")? | ✓ Pass | Preset points are integer literals; custom uses `parseInt()`; stepper values are 1/2/3 |
-| `node --check` passes? | ✓ Pass | Confirmed in agent session |
-
-### 5. EAS Build + TestFlight (parallel work, same session)
-
-While the cloud agent handled the feature, the highest-priority backlog item (EAS Build) was handled locally — the one step that cannot be automated since it requires interactive credential setup.
+### EAS Build + TestFlight (parallel, same session)
 
 ```bash
-eas build --platform ios --profile production   # triggered cloud build
-eas submit --platform ios                        # pushed to TestFlight
+eas build --platform ios --profile production
+eas submit --platform ios
 ```
 
-**Blocker hit:** `eas build` failed on first attempt with `PLAN.md` filename casing error — git tracked it as `PLAN.md` (uppercase), filesystem had `plan.md` (lowercase). EAS's tarball builder detected the inconsistency. Fixed with:
+**Blocker:** `eas build` failed — git tracked `PLAN.md` (uppercase), filesystem had `plan.md` (lowercase). EAS tarball builder caught the inconsistency. Fixed with `git mv` through a temp name. Build succeeded on second run. App installed on iPhone via TestFlight, iMac no longer required.
+
+### Overnight autonomous loop
 
 ```bash
-git mv PLAN.md PLAN_TEMP.md
-git mv PLAN_TEMP.md plan.md
-```
-
-Build succeeded on second run. App installed on iPhone via TestFlight with home screen icon. iMac no longer required to run the app.
-
-### 6. Overnight autonomous loop
-
-The cloud session set up a tmux-based `/loop` to autonomously implement backlog issues overnight:
-
-```
 tmux new -s overnight
-/loop 60m "Check open GitHub issues on parksoy/IntakeTracker that have no open PR
-covering them. Pick the highest-priority one, implement it following all rules in
-CLAUDE.md, run node --check on every edited JS file, commit, push to a new branch,
-and open a PR against claude/food-tracker-app-uMLdp."
+/loop 60m "Check open GitHub issues, pick highest-priority with no open PR, implement following CLAUDE.md rules, node --check every JS file, commit, push branch, open PR against main."
 ```
 
-The loop implemented one issue overnight: **#4 — Favorites/pinned foods** → PR #10 (`feature/favorites-pinned-foods`).
+Implemented Issue #4 (favorites/pinned foods) → PR #10.
 
-### 7. Merge session (next day)
+### Merge session (next morning) — 100% synchronous conflict resolution
 
-Three PRs needed merging in dependency order: #6 → PR #7/11 → #10.
+Three PRs needed merging: #6 → #7/#11 → #10. Every PR conflicted because:
+- Cloud agent, overnight loop, and local edits all touched the same files without file ownership boundaries in their prompts
+- Overnight loop branched from a stale base — re-implemented work already in PR #6
+- Resulted in hours of manual conflict resolution
 
-**PR #6** (`feature/food-features`) — merged cleanly via `gh pr merge --squash`.
+**This was the key failure that shaped Session 2.**
 
-**PR #7** (`claude/async-features-intaketracker-UxuYQ`) — conflicted after #6 merged. Root cause: the cloud agent's branch contained a full re-implementation of features already in #6. Resolved by creating a clean branch (`fix/pr7-cherry-pick`), cherry-picking only the 4 unique commits (label fix + doc updates), and opening PR #11 as a replacement. PR #7 closed.
+---
 
-**PR #10** (`feature/favorites-pinned-foods`) — conflicted for the same reason (overnight loop branched from an old base). Resolved by rebasing onto the updated base, manually resolving conflicts in `AddFoodModal.js` (merging favorites state + toggleFavorite with existing servings + recentlyUsed state). Final merged `AddFoodModal.js` contains all three features working together: servings multiplier + recently used + favorites.
+## Session 2 — VSCode Parallel Agents with Worktrees (2026-04-29)
+
+### What changed from Session 1
+
+| Problem from Session 1 | Solution in Session 2 |
+|------------------------|----------------------|
+| Agents shared files → merge conflicts | Strict file ownership in every prompt |
+| Branched from stale base | `git worktree add` immediately after `git pull` |
+| One working directory → checkout collisions | Git worktrees = separate directories on disk |
+| Review stayed local | `/review` skill + `gh pr comment` to post to GitHub |
+| Agents stopped at "open PR" | Full finish sequence: PR → merge → close issue → project board Done |
+| Unclear terminal layout | 3 panes: Claude Code (left) + Agent 1 (middle) + Agent 2 (right) |
+
+### Setup
+
+```bash
+# 1. Worktrees — true filesystem isolation
+git pull
+git worktree add ~/Desktop/IntakeTracker-agent1 -b feature/weekly-summary
+git worktree add ~/Desktop/IntakeTracker-agent2 -b feature/notifications
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent1/node_modules
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent2/node_modules
+
+# 2. Project board — mark In Progress before launching
+gh project item-edit --project-id PVT_kwHOANERK84BVuVP \
+  --id PVTI_lAHOANERK84BVuVPzgrAL1M \
+  --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE \
+  --single-select-option-id 47fc9ee4   # In Progress
+
+# 3. VSCode: ⌘\ twice → 3 panes. Agent prompts go in middle + right.
+# ⚠️ Press ⌘\ TWICE — once only gives 2 panes and Agent 1 displaces Claude Code session.
+```
+
+### Agent prompts (key additions vs Session 1)
+
+Each prompt now ends with the full autonomous finish sequence:
+```
+When done, run in order:
+1. Commit and push to origin
+2. gh pr create --repo parksoy/IntakeTracker --base main --title "..." --body "..."
+3. gh pr merge --squash --delete-branch --repo parksoy/IntakeTracker
+4. gh issue close <N> --repo parksoy/IntakeTracker --comment "Implemented in this PR."
+5. gh project item-edit --project-id PVT_kwHOANERK84BVuVP \
+     --id <ITEM_ID> --field-id <FIELD_ID> --single-select-option-id 98236657
+```
+
+### Results
+
+Both agents finished and opened PRs before the +60 min checkpoint with zero conflicts:
+- **PR #12** — `notifications.js` + `app.json` (Agent 2) ✅
+- **PR #13** — `WeeklyScreen.js` + `App.js` (Agent 1) ✅
+
+Review posted to both PRs via `gh pr comment`. Both merged cleanly. Issues #2 and #3 closed. Project board updated to Done. Zero manual conflict resolution.
 
 ---
 
 ## Lessons Learned: True Async Agentic Development
 
-### What worked well
+### What works
 
-- **claude.ai/code is genuinely async** — the agent ran, opened a PR, reviewed its own work, synced issues, and closed completed ones, all without the terminal open. The CLAUDE.md context file did its job.
-- **CLAUDE.md as agent onboarding** — every agent (local, cloud, overnight loop) read it first. Consistent rules and file ownership declarations reduced drift.
-- **GitHub Issues + PRs as async coordination** — each issue was a unit of work; each PR was proof of completion. This is the right model for multi-agent work.
+| Practice | Why it matters |
+|----------|---------------|
+| **File ownership in the prompt** | Agents from different surfaces don't share session context. CLAUDE.md alone isn't enough. |
+| **Git worktrees** | Each agent gets its own directory — edits are invisible to other agents during the run. |
+| **Branch from latest main at worktree creation** | Stale base = guaranteed conflicts on merge. |
+| **One issue → one agent → one PR** | The moment two agents touch the same file, conflicts require synchronous resolution. |
+| **Full finish sequence in the prompt** | Agent should PR → merge → close issue → update board without waiting for you. |
+| **Post review via `gh pr comment`** | `/review` results stay local unless explicitly posted. GitHub blocks `--approve` on own PRs. |
+| **GitHub Projects as coordination layer** | Issue = unit of work, PR = proof of completion, board column = live status — no need to read session logs. |
+| **3-pane VSCode layout** | Left = Claude Code session, Middle = Agent 1, Right = Agent 2. Press ⌘\ twice. |
 
-### What didn't work: merge conflicts required 100% synchronous resolution
+### What doesn't work
 
-Every conflict came from the same root cause: **multiple agents touched the same files** (`AddFoodModal.js`, `plan.md`, `CLAUDE.md`) without strict ownership boundaries. The async framing broke down the moment merging started — each conflict required reading both versions, understanding intent, and manually resolving in real time.
+| Anti-pattern | What happens |
+|-------------|-------------|
+| Shared working directory, multiple agents | Checkout conflicts on the git index |
+| File ownership only in CLAUDE.md | Cloud agents, loop agents, and CLI agents each start fresh — they don't share context |
+| Branching from a feature branch instead of main | Includes unmerged work; conflicts guaranteed |
+| Stopping agent at "open PR" | Leaves merge, issue close, and board update for you to do manually |
+| Reviewing in Claude Code without posting | PR page stays blank; looks like nothing was reviewed |
+| `⌘\` once instead of twice | Agent 1 prompt goes into Claude Code pane, disrupting the session |
 
-**Why it happened:**
-- File ownership rules in CLAUDE.md said "Agent 1 owns app.json/eas.json, Agent 2 owns src/" — but the cloud agent and overnight loop weren't given those constraints in their prompts
-- The overnight loop branched from a stale base (before PR #6 merged), so its additions collided with everything in #6
-- The cloud agent re-implemented features that were already in PR #6, creating large overlapping diffs
+### The GitHub Project board as async truth
 
-### Rules for true async multi-agent work
+```
+Issue → Todo          (backlog)
+Issue → In Progress   (agent launched, worktree exists)
+Issue → Done          (PR merged, branch deleted, issue closed)
+```
 
-| Rule | Why |
-|------|-----|
-| **Assign non-overlapping files per agent in the prompt** — not just in CLAUDE.md | Agents from different surfaces (web, loop, local) don't share context; the prompt is the only guarantee |
-| **Each agent branches from the latest merged base** — never from a feature branch | Branching from a stale base guarantees conflicts on merge |
-| **Use git worktrees for truly isolated parallel work** | Worktrees give each agent a separate working directory on the same repo — no checkout conflicts |
-| **One issue → one agent → one branch → one PR** | The moment two agents touch the same file, you need a synchronous merge session |
-| **GitHub Projects board is the coordination layer** | Issue = unit of work, PR = proof of completion, project column = status. Avoids reading session logs to understand state |
-
-### GitHub Projects setup (done)
-
-- **Project:** "IntakeTracker Roadmap" at `github.com/users/parksoy/projects/1`
-- **Remaining open issues on the board:**
-  - #2 — Weekly/monthly point summary (`priority:medium`)
-  - #3 — Push notification / daily reminder (`priority:low`)
-  - #5 — Dark mode (`priority:low`)
-- **Closed in this session:** #1 (EAS Build), #4 (favorites), #8 (history screen), #9 (recently used)
+You can check board status from your phone. No terminal needed to know where things stand.
 
 ---
 
-## Final State
+## Final State (end of both sessions)
 
-**Branch:** only `claude/food-tracker-app-uMLdp` remains (local + remote). All feature branches deleted.
+**Branch:** only `main` remains locally and on remote.
 
-**App on iPhone:** standalone TestFlight build, no iMac required.
+**App on iPhone:** standalone TestFlight build, works with iMac off.
 
-**Features shipped in this session:**
-- ✅ Serving size multiplier — `Eggs ×2` label format, integer points
-- ✅ History screen — `HistoryScreen.js`, multi-day AsyncStorage keyed by date
-- ✅ Recently used foods — top 5 logged foods surfaced in modal
-- ✅ Favorites/pinned foods — ★ star button on every food row, persisted in AsyncStorage
-- ✅ EAS Build + TestFlight distribution
+**Features shipped:**
+- ✅ Serving size multiplier — `Eggs ×2` label format (Session 1, cloud agent)
+- ✅ History screen — `HistoryScreen.js`, multi-day AsyncStorage (Session 1, local)
+- ✅ Recently used foods — top 5 at top of modal (Session 1, local)
+- ✅ Favorites/pinned foods — ★ star button, persisted (Session 1, overnight loop)
+- ✅ EAS Build + TestFlight distribution (Session 1)
+- ✅ Weekly summary — `WeeklyScreen.js`, 7-day bar chart (Session 2, Agent 1)
+- ✅ Push notification utility — `notifications.js`, `scheduleReminder`/`cancelReminder` (Session 2, Agent 2)
+
+**Remaining open issue:** #5 Dark mode — must run solo (touches all StyleSheets in all components).
+
+**Reusable runbook:** [pre-flight-checklist.md](pre-flight-checklist.md) — covers system setup, issue selection, worktree creation, board moves, VSCode layout, agent prompts with full finish sequence, review posting, post-merge cleanup, and project board IDs.
