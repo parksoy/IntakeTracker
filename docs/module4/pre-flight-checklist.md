@@ -142,7 +142,84 @@ gh project item-edit 1 --owner parksoy \
 
 ---
 
-## 5 — Agent Prompts (paste into each terminal)
+## 5 — Launch Sequence (run in order when ready)
+
+All pre-flight checks done? Run these commands in sequence.
+
+**Step 1 — In the main terminal, create worktrees:**
+```bash
+git pull
+git worktree add ~/Desktop/IntakeTracker-agent1 -b feature/weekly-summary
+git worktree add ~/Desktop/IntakeTracker-agent2 -b feature/notifications
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent1/node_modules
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent2/node_modules
+git worktree list
+```
+
+**Step 2 — Move issues to In Progress on the board:**
+```bash
+gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1M --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrAL1o --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+```
+
+**Step 3 — Split the VSCode terminal:** `` ⌘\ `` — left pane and right pane side by side.
+
+**Step 4 — LEFT terminal:**
+```bash
+cd ~/Desktop/IntakeTracker-agent1
+claude "Read CLAUDE.md and plan.md first — they have full project context.
+
+Task: Implement Issue #2 — weekly/monthly point summary.
+
+File ownership — you may ONLY modify:
+- CREATE src/components/WeeklyScreen.js (new file)
+- MODIFY App.js — add a 'Week' button to the header, state toggle to show WeeklyScreen
+
+Do NOT touch: storage.js, AddFoodModal.js, FoodLogItem.js, HistoryScreen.js, PointsRing.js, app.json, eas.json.
+
+Spec:
+- WeeklyScreen reads loadAllLogs() from src/utils/storage.js (already exists — do not change it)
+- Show last 7 days: date, total points used, bar or list
+- Match existing brand color #2E7D32 and StyleSheet.create() pattern
+- No new dependencies
+
+Rules:
+- After every JS file edit: node --check <file>
+- Do not hardcode food data — it lives in src/data/foods.js only
+
+When done: commit, push branch to origin, open a PR against main."
+```
+
+**Step 5 — RIGHT terminal:**
+```bash
+cd ~/Desktop/IntakeTracker-agent2
+claude "Read CLAUDE.md and plan.md first — they have full project context.
+
+Task: Implement Issue #3 — push notification / daily reminder.
+
+File ownership — you may ONLY modify:
+- CREATE src/utils/notifications.js (new file)
+- MODIFY app.json — add expo-notifications plugin entry
+
+Do NOT touch: App.js, any file in src/components/, storage.js, eas.json.
+
+Spec:
+- If expo-notifications not installed: npx expo install expo-notifications
+- notifications.js exports: scheduleReminder(hour, minute) and cancelReminder()
+- Add a comment block at the top of notifications.js showing exactly how to call it from App.js (do not modify App.js itself — UI wiring is a separate task)
+- Use expo-notifications scheduling API
+
+Rules:
+- After every JS file edit: node --check <file>
+
+When done: commit, push branch to origin, open a PR against main."
+```
+
+**Then step away.** Check back at **+15 min** for permission prompts, **+60 min** to review PRs.
+
+---
+
+## 6 — Agent Prompts (reference copy)
 
 ### Terminal 1 — Agent 1 (Issue #2: Weekly Summary)
 
