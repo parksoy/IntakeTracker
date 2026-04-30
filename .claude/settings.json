@@ -7,6 +7,12 @@
       "Bash(ps aux *)"
     ]
   },
+
+   "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+
+
   "mcpServers": {
     "context7": {
       "command": "npx",
