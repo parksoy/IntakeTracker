@@ -6,6 +6,22 @@
 
 ---
 
+## What the Exercise Actually Asked For
+
+The spec's three verbs are: **Select** a feature, **Kick off** from an async surface, **Review** and **drive to completion**. The human is the orchestrator throughout — selecting work, triggering the agent, reviewing output. The exercise title says "How to Become a Multi-Agent Manager": the *human* is the manager.
+
+All four options in the spec describe one agent handling one task. The "parallel agents via Conductor" option introduces multiple agents, but Conductor is an orchestrator framework — the software coordinates, not the agents themselves.
+
+The exercise never asks for agents to assign tasks to each other, message each other mid-run, or for a lead agent to coordinate teammates. That is Agent Teams territory and is not in scope.
+
+| Session | Scope vs. exercise |
+|---------|-------------------|
+| Session 1 — one cloud agent, human reviews PR | ✅ Exactly what was asked |
+| Session 2 — parallel agents, human sets up worktrees + reviews PRs | ✅ Exceeds spec; demonstrates the Conductor-style parallel option |
+| Session 3 — overnight autonomous run, permissions allowlist, human removed | ➕ Beyond scope; explores what breaks when you eliminate the human orchestrator — surfaced the EAS credentials hard limit |
+
+---
+
 ## Exercise Goals
 
 | Goal | Status |
@@ -107,6 +123,125 @@ When done in order: (1) commit + push, (2) gh pr create --repo parksoy/IntakeTra
 
 **Goal:** Laptop stays on, agents run unattended. Next morning: both PRs merged on GitHub, EAS build kicked off, new app on TestFlight within 20 minutes of waking up.
 
+### Pre-launch log (2026-05-02)
+
+```bash
+# 1. Commit settings + report so worktrees start from latest main
+git add .claude/settings.json docs/module4/module4_excercize_stepbystep.md
+git commit -m "Session 3 prep: expand permissions allowlist and update exercise report"
+git push
+# → f0a5138 pushed to origin/main
+
+# 2. Clean up stale Session 2 worktrees (were still registered from 2026-04-29)
+git worktree remove ~/Desktop/IntakeTracker-agent1 --force
+git worktree remove ~/Desktop/IntakeTracker-agent2 --force
+git branch -d feature/weekly-summary feature/notifications
+# → Deleted both stale branches (already merged to origin)
+
+# 3. Create Session 3 worktrees from f0a5138 (latest main)
+git worktree prune
+git branch -d feature/saved-custom-foods   # orphan branch from earlier attempt
+git worktree add ~/Desktop/IntakeTracker-agent1 -b feature/saved-custom-foods
+git worktree add ~/Desktop/IntakeTracker-agent2 -b feature/streak-badge
+# → Both worktrees on f0a5138
+
+# 4. Symlink node_modules (avoids re-install in each worktree)
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent1/node_modules
+ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent2/node_modules
+
+# 5. Confirm layout
+git worktree list
+# /Users/soyoungpark/Desktop/IntakeTracker         f0a5138 [main]
+# /Users/soyoungpark/Desktop/IntakeTracker-agent1  f0a5138 [feature/saved-custom-foods]
+# /Users/soyoungpark/Desktop/IntakeTracker-agent2  f0a5138 [feature/streak-badge]
+
+# 6. Move issues to In Progress on project board
+gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrp1CA --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrp1CM --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+# → Issue #14 → In Progress
+# → Issue #15 → In Progress
+```
+
+**Blocker encountered during pre-launch:** `gh project item-edit 1 --owner parksoy` (Session 2 syntax) no longer works — the subcommand now requires `--project-id` instead of a positional arg + `--owner`. Updated all board commands to use `--project-id PVT_kwHOANERK84BVuVP` form.
+
+**Permission gaps discovered during Session 3 run — still required human intervention:**
+
+| Prompt triggered | Root cause | Fix added to settings.json |
+|-----------------|------------|---------------------------|
+| `npm install *` | Agents ran bare `npm install` (not `npx expo install`) when resolving missing deps | Added `Bash(npm install *)` |
+| `gh project *` | Agents used `gh project list`, `gh project item-list` to look up IDs — only `item-edit` was allowed | Replaced `Bash(gh project item-edit *)` with `Bash(gh project *)` |
+| Read from `~/Desktop/IntakeTracker/` | Agents tried to read `CLAUDE.md` and `plan.md` using the absolute main-workspace path, not the worktree-relative path | Added `Read(~/Desktop/IntakeTracker/**)` |
+| Edit/Write `.js` files in worktree | File edits in `IntakeTracker-agent1/` and `agent2/` required approval — only Bash operations were pre-allowed | Added `Edit` and `Write` for both worktree paths |
+| `eas build *` | The exact-string allowlist entry `eas build --platform ios --profile production --non-interactive` didn't match when EAS prepended env vars or slightly varied the invocation | Replaced with `Bash(eas build *)` |
+| `eas credentials *` | EAS invokes credential management as a subprocess during build — separate command, separate permission prompt | Added `Bash(eas credentials *)` |
+
+**Updated `.claude/settings.json` allowlist (post-Session 3 fix):**
+```json
+"permissions": {
+  "allow": [
+    "Bash(npm run lint)",
+    "Bash(npm run format:check)",
+    "Bash(npm install *)",
+    "Bash(node --check *)",
+    "Bash(ps aux *)",
+    "Bash(git add *)",
+    "Bash(git commit *)",
+    "Bash(git push *)",
+    "Bash(gh pr create *)",
+    "Bash(gh pr merge *)",
+    "Bash(gh issue close *)",
+    "Bash(gh project *)",
+    "Bash(npx expo install *)",
+    "Bash(eas build *)",
+    "Bash(eas credentials *)",
+    "Read(~/Desktop/IntakeTracker/**)",
+    "Edit(~/Desktop/IntakeTracker-agent1/**)",
+    "Edit(~/Desktop/IntakeTracker-agent2/**)",
+    "Write(~/Desktop/IntakeTracker-agent1/**)",
+    "Write(~/Desktop/IntakeTracker-agent2/**)"
+  ]
+}
+```
+
+**EAS build blocker — manual intervention required (not automatable):**
+
+Root cause: the provisioning profile was created before `expo-notifications` was added to `app.json` plugins. The existing profile lacks the `aps-environment` (Push Notifications) entitlement, so the Xcode build rejects it. There is no non-interactive flag to force credential regeneration — the `eas credentials` interactive menu is the only way to delete the stale profile.
+
+Fix (one-time, must be run manually):
+```bash
+cd ~/Desktop/IntakeTracker
+eas credentials --platform ios
+# Navigate to: Provisioning Profile → Remove (delete the existing one)
+# Then exit and rebuild:
+eas build --platform ios --profile production --non-interactive
+# EAS auto-generates a new profile that includes the Push Notifications entitlement
+```
+
+This is not a one-time edge case — it is a structural limitation. `eas credentials` is intentionally interactive because it is mutating Apple's signing infrastructure. There is no `--non-interactive` flag for credential deletion. **The EAS build step cannot be included in a fully unattended overnight agent run whenever any agent has added or changed a native entitlement.**
+
+**Revised conclusion for Session 3:** true overnight autonomy applies to code changes only — feature implementation, PR, merge, issue close, and board update all run without intervention. The EAS build must be triggered manually the next morning. The "new app ready on TestFlight" goal shifts from "wake up and it's already there" to "wake up, run one command, wait 15 minutes."
+
+Revised finish sequence for overnight agents — drop the EAS step entirely:
+```bash
+# Agents handle: commit → push → pr create → pr merge → issue close → board update
+# Human handles next morning:
+cd ~/Desktop/IntakeTracker && git pull
+eas credentials --platform ios   # only needed when native entitlements changed
+eas build --platform ios --profile production --non-interactive
+```
+
+**Session 3 conclusion:**
+
+The revised overnight model:
+- **Agents own:** code → commit → PR → merge → close issue → update board (fully unattended)
+- **You own next morning:** `git pull` + `eas credentials` (if needed) + `eas build`
+
+That's still a significant win — all the code work and GitHub housekeeping happens while you sleep, and the 15-minute build runs while you have coffee.
+
+**Lesson:** the original allowlist only covered Bash commands. File-level `Edit` and `Write` tool calls are separate permission categories in Claude Code — they must be explicitly allowed for each worktree path, or agents prompt for approval on every file change. Similarly, `gh project *` must be broad enough to cover read subcommands (`list`, `item-list`), not just `item-edit`.
+
+**Ready to launch.** Open terminal → `⌘\` twice → 3 panes. Paste Agent 1 prompt in middle, Agent 2 prompt in right. Step away.
+
 ### Two new features — zero file overlap
 
 **Feature A — Saved Custom Foods (Agent 1)**  
@@ -164,8 +299,8 @@ ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent1/node_m
 ln -s ~/Desktop/IntakeTracker/node_modules ~/Desktop/IntakeTracker-agent2/node_modules
 
 # Move issues to In Progress
-gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrp1CA --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
-gh project item-edit 1 --owner parksoy --id PVTI_lAHOANERK84BVuVPzgrp1CM --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrp1CA --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
+gh project item-edit --project-id PVT_kwHOANERK84BVuVP --id PVTI_lAHOANERK84BVuVPzgrp1CM --field-id PVTSSF_lAHOANERK84BVuVPzhRIFdE --single-select-option-id 47fc9ee4
 ```
 
 ### Agent 1 — Saved Custom Foods:
@@ -252,6 +387,10 @@ Agent orchestrator frameworks (Conductor, LangGraph, custom harnesses) sit above
 | One issue → one agent → one PR | Two agents touching the same file requires synchronous conflict resolution |
 | Full finish sequence in the prompt | Agent should PR → merge → close issue → update board without waiting for you |
 | Permissions allowlist pre-configured | Without it, `git commit` and `gh pr create` block on prompts overnight |
+| `Edit`/`Write` paths in allowlist | Bash permissions alone aren't enough — file tool calls need explicit `Edit(path/**)` + `Write(path/**)` entries per worktree |
+| `gh project *` not just `gh project item-edit *` | Agents use `gh project list` and `item-list` to look up IDs; narrow allowlist blocks these reads |
+| `npm install *` alongside `npx expo install *` | Agents sometimes resolve deps with bare `npm install`, not the Expo wrapper |
+| `Bash(eas build *)` not the exact flag string | The full `--platform ios --profile production --non-interactive` exact-match entry fails if EAS varies the invocation; use wildcard |
 | `--non-interactive` on eas build | EAS blocks overnight without it; build never completes |
 | Post review via `gh pr comment` | `/review` results stay local unless explicitly posted |
 
@@ -264,6 +403,7 @@ Agent orchestrator frameworks (Conductor, LangGraph, custom harnesses) sit above
 | Branching from a feature branch | Includes unmerged work; conflicts guaranteed |
 | Stopping agent at "open PR" | Leaves merge, issue close, board update for manual cleanup |
 | No permissions allowlist | `git`/`gh` commands prompt for approval — blocks overnight run |
+| Including `eas build` in overnight agent prompts | `eas credentials` is always interactive when native entitlements change — no flag bypasses it. EAS build cannot be part of an unattended run; trigger it manually next morning |
 
 ---
 
@@ -283,3 +423,71 @@ Agent orchestrator frameworks (Conductor, LangGraph, custom harnesses) sit above
 **Remaining open issue:** #5 Dark mode — must run solo (touches all StyleSheets in all components).
 
 **Reusable runbook:** [pre-flight-checklist.md](pre-flight-checklist.md)
+
+---
+
+## Final Note: What the Official Agent Teams Feature Offers That We Didn't Use
+
+We built a working multi-agent workflow manually — worktrees for isolation, VSCode panes for parallel execution, file ownership in prompts for coordination, and the GitHub project board as a shared status layer. The [Claude Code Agent Teams documentation](https://code.claude.com/docs/en/agent-teams) describes a native feature (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`) that handles most of this automatically. Here's what we hand-rolled that the official feature provides out of the box:
+
+| What we built manually | What Agent Teams provides natively |
+|------------------------|-----------------------------------|
+| File ownership rules in every prompt to prevent conflicts | Shared task list with file-locking — teammates self-claim tasks and the system prevents race conditions |
+| GitHub project board as coordination layer | Built-in task list (`~/.claude/tasks/`) with pending / in-progress / done states and automatic dependency unblocking |
+| No communication between agents — each prompt was self-contained | Mailbox system: teammates message each other directly by name without going through you |
+| VSCode pane splits set up manually with `⌘\` twice | `teammateMode: "tmux"` in settings.json auto-spawns split panes; or in-process mode with `Shift+Down` to cycle teammates |
+| One fixed task per agent, written into the launch prompt | Self-claiming: after finishing, a teammate picks up the next unassigned task automatically |
+| No plan review — agent went straight to implementation | Plan approval gate: teammate works read-only until lead approves the plan; lead can reject with feedback |
+| `PostToolUse` hook only for syntax checking | `TeammateIdle`, `TaskCreated`, `TaskCompleted` hooks — enforce quality gates (e.g. block task completion if tests fail) |
+| Inline prompts rewritten each session | Subagent definitions — define a role once (e.g. `security-reviewer`) and reuse it as a teammate by name |
+| Human monitored for errors and redirected manually | Lead manages the team: re-assigns stuck tasks, shuts down teammates, synthesizes findings |
+
+### How to enable it
+
+```json
+// settings.json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Then instead of writing two separate launch prompts and pasting them into VSCode panes:
+
+```text
+Create an agent team to implement two features in parallel.
+Teammate 1: saved custom foods — CREATE src/utils/customFoods.js, MODIFY AddFoodModal.js only.
+Teammate 2: streak badge — CREATE src/components/StreakBadge.js, MODIFY App.js only.
+Each teammate: node --check after every JS edit, then commit → PR → merge → close issue → update board.
+Require plan approval before either teammate writes any code.
+```
+
+Claude spawns the teammates, assigns tasks, enforces file ownership through the task list, and lets teammates notify each other when done.
+
+### Did Session 3 count as "orchestration"?
+
+No. Session 3 was **parallel independent execution**, not orchestration.
+
+Orchestration means a coordinating layer dynamically assigns tasks, monitors agent progress, routes results between agents, and makes decisions based on what other agents produced. The output of one agent feeds into another.
+
+What Session 3 actually was: two agents, each given a fully self-contained prompt that told it exactly what to do from start to finish. Agent 1 had no idea Agent 2 existed. Neither agent could reassign work, react to the other's output, or retry a failed step. **We** were the only coordinator — we wrote the prompts, set up the worktrees, and monitored.
+
+| Pattern | Coordination |
+|---------|-------------|
+| Session 1 overnight `/loop` | Self-directed — one agent picks its own next task from GitHub issues |
+| Sessions 2 + 3 worktrees | **None** — two isolated workers with human-authored, fully pre-specified prompts |
+| Agent Teams (official feature) | True orchestration — lead assigns tasks dynamically, teammates message each other, shared task list with dependency resolution |
+
+The reason Session 3 worked without orchestration is that the two features had zero file overlap and zero dependency on each other's output. Orchestration becomes necessary when: tasks have dependencies (Agent 2 needs Agent 1's output before it can start), work needs to be reassigned (Agent 1 gets stuck, lead gives the task to Agent 2), or agents need to share findings mid-run (one agent discovers something the other needs to know).
+
+### Why we didn't use it
+
+Agent Teams is marked **experimental** in the docs, with known limitations: no session resumption for in-process teammates, task status can lag. The docs say the native `teammateMode: "tmux"` split-pane mode requires tmux or iTerm2 and isn't supported in VS Code's integrated terminal — but VS Code's own `⌘\` pane splitting worked fine for our manual approach (2 panes, one agent each). The main reason we didn't use Agent Teams was that the experimental flag and known coordination bugs made the manual worktree approach more predictable for a first overnight run.
+
+### What to explore next
+
+- Switch to iTerm2 + `teammateMode: "tmux"` and let Agent Teams manage pane creation
+- Use the plan approval gate (`Require plan approval before making changes`) to review agent designs before they write code
+- Add `TaskCompleted` hooks that run `node --check` on every JS file the teammate touched before it can mark a task done — replacing the current per-file `PostToolUse` hook
+- Try the competing-hypotheses pattern for debugging: spawn 3 teammates with different theories, have them message each other to challenge findings, converge on root cause

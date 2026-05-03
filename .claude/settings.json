@@ -3,6 +3,7 @@
     "allow": [
       "Bash(npm run lint)",
       "Bash(npm run format:check)",
+      "Bash(npm install *)",
       "Bash(node --check *)",
       "Bash(ps aux *)",
       "Bash(git add *)",
@@ -11,9 +12,15 @@
       "Bash(gh pr create *)",
       "Bash(gh pr merge *)",
       "Bash(gh issue close *)",
-      "Bash(gh project item-edit *)",
+      "Bash(gh project *)",
       "Bash(npx expo install *)",
-      "Bash(eas build --platform ios --profile production --non-interactive)"
+      "Bash(eas build *)",
+      "Bash(eas credentials *)",
+      "Read(~/Desktop/IntakeTracker/**)",
+      "Edit(~/Desktop/IntakeTracker-agent1/**)",
+      "Edit(~/Desktop/IntakeTracker-agent2/**)",
+      "Write(~/Desktop/IntakeTracker-agent1/**)",
+      "Write(~/Desktop/IntakeTracker-agent2/**)"
     ]
   },
   "mcpServers": {
