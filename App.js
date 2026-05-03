@@ -14,9 +14,30 @@ import FoodLogItem from './src/components/FoodLogItem';
 import AddFoodModal from './src/components/AddFoodModal';
 import HistoryScreen from './src/components/HistoryScreen';
 import WeeklyScreen from './src/components/WeeklyScreen';
-import { loadTodayLog, saveTodayLog, clearTodayLog } from './src/utils/storage';
+import StreakBadge from './src/components/StreakBadge';
+import { loadTodayLog, saveTodayLog, clearTodayLog, loadAllLogs } from './src/utils/storage';
 
 const DAILY_LIMIT = 23;
+
+function computeStreak(allLogs) {
+  const logMap = {};
+  for (const { date, entries } of allLogs) {
+    logMap[date] = entries.reduce((sum, e) => sum + e.points, 0);
+  }
+  let count = 0;
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  while (true) {
+    const dateStr = d.toISOString().split('T')[0];
+    if (logMap[dateStr] !== undefined && logMap[dateStr] < DAILY_LIMIT) {
+      count++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return count;
+}
 
 export default function App() {
   const [log, setLog] = useState([]);
@@ -24,11 +45,13 @@ export default function App() {
   const [historyVisible, setHistoryVisible] = useState(false);
   const [weeklyVisible, setWeeklyVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [streak, setStreak] = useState(0);
 
   // Load today's log on mount (also handles day-reset automatically)
   useEffect(() => {
-    loadTodayLog().then((entries) => {
+    Promise.all([loadTodayLog(), loadAllLogs()]).then(([entries, allLogs]) => {
       setLog(entries);
+      setStreak(computeStreak(allLogs));
       setLoading(false);
     });
   }, []);
@@ -87,7 +110,10 @@ export default function App() {
       <View style={styles.header}>
         <View>
           <Text style={styles.appName}>IntakeTracker</Text>
-          <Text style={styles.dateText}>{today}</Text>
+          <View style={styles.dateRow}>
+            <Text style={styles.dateText}>{today}</Text>
+            <StreakBadge streak={streak} />
+          </View>
         </View>
         <View style={styles.headerBtns}>
           <TouchableOpacity onPress={() => setWeeklyVisible(true)} style={styles.historyBtn}>
@@ -204,10 +230,15 @@ const styles = StyleSheet.create({
     color: '#212121',
     letterSpacing: -0.3,
   },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
   dateText: {
     fontSize: 13,
     color: '#9E9E9E',
-    marginTop: 2,
   },
   ringSection: {
     alignItems: 'center',
