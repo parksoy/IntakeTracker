@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { ZERO_POINT_FOODS, TRACKED_FOODS } from '../data/foods';
 import { loadRecentlyUsed, saveRecentlyUsed, loadFavorites, saveFavorites } from '../utils/storage';
+import { loadCustomFoods, saveCustomFood } from '../utils/customFoods';
 
 export default function AddFoodModal({ visible, onClose, onAdd }) {
   const [activeTab, setActiveTab] = useState('zero');
@@ -22,12 +23,14 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
   const [servings, setServings] = useState(1);
   const [recentlyUsed, setRecentlyUsed] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [customFoods, setCustomFoods] = useState([]);
 
   useEffect(() => {
     if (visible) {
       setServings(1);
       loadRecentlyUsed().then(setRecentlyUsed);
       loadFavorites().then(setFavorites);
+      loadCustomFoods().then(setCustomFoods);
     }
   }, [visible]);
 
@@ -40,6 +43,12 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     const q = search.toLowerCase();
     return TRACKED_FOODS.filter((f) => f.name.toLowerCase().includes(q));
   }, [search]);
+
+  const filteredCustomFoods = useMemo(() => {
+    if (!search) return customFoods;
+    const q = search.toLowerCase();
+    return customFoods.filter((f) => f.name.toLowerCase().includes(q));
+  }, [customFoods, search]);
 
   const favoriteFoods = useMemo(() => {
     return favorites.map((name) => {
@@ -85,6 +94,19 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
     const pts = parseInt(customPoints, 10);
     if (!customName.trim() || isNaN(pts) || pts < 0) return;
     addEntry(customName.trim(), pts);
+    setCustomName('');
+    setCustomPoints('');
+  }
+
+  async function handleSaveCustom() {
+    const pts = parseInt(customPoints, 10);
+    if (!customName.trim() || isNaN(pts) || pts < 0) return;
+    const food = { name: customName.trim(), points: pts };
+    await saveCustomFood(food);
+    setCustomFoods((prev) =>
+      prev.some((f) => f.name === food.name) ? prev : [...prev, food]
+    );
+    addEntry(food.name, food.points);
     setCustomName('');
     setCustomPoints('');
   }
@@ -161,6 +183,27 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
 
   const listHeader = (
     <>
+      {activeTab === 'tracked' && filteredCustomFoods.length > 0 && (
+        <View style={styles.savedSection}>
+          <Text style={styles.savedLabel}>SAVED</Text>
+          {filteredCustomFoods.map((food) => (
+            <TouchableOpacity
+              key={food.name}
+              style={styles.listRow}
+              onPress={() => handleAddPreset(food)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.listInfo}>
+                <Text style={styles.listName}>{food.name}</Text>
+                <Text style={styles.listCategory}>Saved custom</Text>
+              </View>
+              <View style={styles.pointsBadge}>
+                <Text style={styles.pointsText}>{food.points} pts</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
       {filteredFavorites.length > 0 && (
         <View style={styles.favSection}>
           <Text style={styles.favSectionLabel}>FAVORITES</Text>
@@ -305,6 +348,9 @@ export default function AddFoodModal({ visible, onClose, onAdd }) {
                       returnKeyType="done"
                       onSubmitEditing={handleAddCustom}
                     />
+                    <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCustom}>
+                      <Text style={styles.saveBtnText}>Save</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.addBtn} onPress={handleAddCustom}>
                       <Text style={styles.addBtnText}>Add</Text>
                     </TouchableOpacity>
@@ -587,6 +633,18 @@ const styles = StyleSheet.create({
     width: 60,
     textAlign: 'center',
   },
+  saveBtn: {
+    borderWidth: 1.5,
+    borderColor: '#2E7D32',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  saveBtnText: {
+    color: '#2E7D32',
+    fontWeight: '600',
+    fontSize: 15,
+  },
   addBtn: {
     backgroundColor: '#2E7D32',
     borderRadius: 8,
@@ -597,5 +655,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 15,
+  },
+  savedSection: {
+    marginBottom: 8,
+  },
+  savedLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9E9E9E',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 2,
   },
 });
